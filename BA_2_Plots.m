@@ -3,7 +3,7 @@
 
 %%% Eonia:
 
-plot(cohortParams.DateFormat,cohortParams.EONIA_matched,'r');
+plot(cohortParams.DateFormat,cohortParams.EONIA,'r');
 
 %% % Dax Zeitreihe in Jahren
 
@@ -205,3 +205,91 @@ ylabel('Anzahl')
 
 savefig('figures/call_options_bar.fig');
 % too confusing... -> group them: 
+
+%% barplot: Moneyness
+% Aufteilung in <80%, 80-95%, 95-105%, 105-120% und >120% 
+%(DOTM, OTM, ATM, ITM, DITM)
+
+% Calls
+mnyness_c(1,1) = sum(any(callPrices.mnyness>1.2,2)); % Number of call option prices which are DITM
+mnyness_c(1,2) = mnyness_c(1,1)/length(callPrices.mnyness);    % Percent of all call option prices
+
+mnyness_c(2,1) = sum(any(callPrices.mnyness<=1.2 & callPrices.mnyness>1.05,2)); % Number of call option prices which are ITM
+mnyness_c(2,2) = mnyness_c(2,1)/length(callPrices.mnyness);    % Percent of all call option prices
+
+mnyness_c(3,1) = sum(any(callPrices.mnyness<=1.05 & callPrices.mnyness>0.95,2)); % Number of call option prices which are ATM
+mnyness_c(3,2) = mnyness_c(3,1)/length(callPrices.mnyness);    % Percent of all call option prices
+
+mnyness_c(4,1) = sum(any(callPrices.mnyness<=0.95 & callPrices.mnyness>0.8,2)); % Number of call option prices which are OTM
+mnyness_c(4,2) = mnyness_c(4,1)/length(callPrices.mnyness);    % Percent of all call option prices
+
+mnyness_c(5,1) = sum(any(callPrices.mnyness<0.8,2)); % Number of call option prices which are DOTM
+mnyness_c(5,2) = mnyness_c(5,1)/length(callPrices.mnyness);    % Percent of all call option prices
+
+% Puts
+mnyness_p(5,1) = sum(any(putPrices.mnyness>1.2,2)); % Number of put option prices which are DOTM
+mnyness_p(5,2) = mnyness_p(5,1)/length(putPrices.mnyness);    % Percent of all put option prices
+
+mnyness_p(4,1) = sum(any(putPrices.mnyness<=1.2 & putPrices.mnyness>1.05,2)); % Number of put option prices which are OTM
+mnyness_p(4,2) = mnyness_p(4,1)/length(putPrices.mnyness);    % Percent of all put option prices
+
+mnyness_p(3,1) = sum(any(putPrices.mnyness<=1.05 & putPrices.mnyness>0.95,2)); % Number of put option prices which are ATM
+mnyness_p(3,2) = mnyness_p(3,1)/length(putPrices.mnyness);    % Percent of all put option prices
+
+mnyness_p(2,1) = sum(any(putPrices.mnyness<=0.95 & putPrices.mnyness>0.8,2)); % Number of put option prices which are ITM
+mnyness_p(2,2) = mnyness_p(2,1)/length(putPrices.mnyness);    % Percent of all put option prices
+
+mnyness_p(1,1) = sum(any(putPrices.mnyness<0.8,2)); % Number of put option prices which are DITM
+mnyness_p(1,2) = mnyness_p(1,1)/length(putPrices.mnyness);    % Percent of all put option prices
+
+% calls and puts together
+mnyness(:,1) = mnyness_c(:,1) + mnyness_p(:,1);
+mnyness(:,2) = mnyness(:,1)/sum(mnyness(:,1));
+
+
+
+subplot(3,2,1)
+bar(mnyness_c(:,1),0.4) % call with absolute frequency
+set(gca,'xTickLabel', {'DITM','ITM','ATM','OTM','DOTM'});
+title('Moneyness call options')
+subplot(3,2,2)
+bar(mnyness_p(:,1),0.4) % put with absolute frequency
+set(gca,'xTickLabel', {'DITM','ITM','ATM','OTM','DOTM'});
+title('Moneyness put options')
+savefig('figures/mnyness_abs.fig');
+
+subplot(3,2,3)
+bar(mnyness_c(:,2),0.4) % with relative frequency
+set(gca,'xTickLabel', {'DITM','ITM','ATM','OTM','DOTM'});
+title('Moneyness call options (in %)')
+subplot(3,2,4)
+bar(mnyness_p(:,2),0.4) % with relative frequency
+set(gca,'xTickLabel', {'DITM','ITM','ATM','OTM','DOTM'});
+title('Moneyness put options (in %)')
+savefig('figures/mnyness_rel.fig');
+
+subplot(3,2,5)
+bar(mnyness(:,1),0.4) % all options with absolute frequency
+set(gca,'xTickLabel', {'DITM','ITM','ATM','OTM','DOTM'});
+title('Moneyness all options')
+savefig('figures/mnyness_all_abs.fig');
+subplot(3,2,6)
+bar(mnyness(:,2),0.4) % all options with relative frequency
+set(gca,'xTickLabel', {'DITM','ITM','ATM','OTM','DOTM'});
+title('Moneyness all options')
+savefig('figures/mnyness_all_rel.fig');
+
+%% % DAX VOLATILITIES
+figure('position',[100 100 1200 600])
+volap = plot(daxVals.DateFormat,daxVals.vol20, ...
+            daxVals.DateFormat,daxVals.vol60, ...
+            daxVals.DateFormat,daxVals.vol120, ...
+            daxVals.DateFormat,daxVals.vol255);
+datetick('x');
+
+title('Historical Volatility ')
+xlabel('days')
+ylabel('volatility (in %)')
+legend('Vola20','Vola60','Vola120','Vola255', 'Location','northeast')
+savefig('figures/hist_vola.fig');
+
