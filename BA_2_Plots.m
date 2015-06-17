@@ -1,6 +1,6 @@
 %% % ################# 2) Plots of the options data ########################
 
-
+% !!!!!!!!!!!!!!!!!!! Zuerst BA_3 durchlaufen lassen !!!!!!!!!!!!!!!!!!!!
 %%% Eonia:
 
 plot(cohortParams.DateFormat,cohortParams.EONIA,'r');
@@ -279,6 +279,120 @@ set(gca,'xTickLabel', {'DITM','ITM','ATM','OTM','DOTM'});
 title('Moneyness all options')
 savefig('figures/mnyness_all_rel.fig');
 
+%% Moneyness aller Optionen an ihrem ersten Handelstag
+% Calls
+figure('position',[100 100 1200 600])
+hist(mny_beg_c(:,1),60)
+title('Moneyness der Calls an ihrem ersten Handelstag')
+xlabel('Moneyness')
+ylabel('Anzahl')
+line([0.95 0.95],[0 1200],'LineStyle',':',...     % lower bound ATM 
+    'color','r');
+line([1.05 1.05],[0 1200],'LineStyle',':',...     % upper bound ATM 
+    'color','r');
+line([0.8 0.8],[0 1200],'LineStyle',':',...     % lower bound OTM 
+    'color','r');
+line([1.2 1.2],[0 1200],'LineStyle',':',...     % lower bound ITM 
+    'color','r');
+text(1.0,1150,'ATM','HorizontalAlignment','center','fontsize',9)
+text(0.875,1150,'OTM','HorizontalAlignment','center','fontsize',9)
+text(1.125,1150,'ITM','HorizontalAlignment','center','fontsize',9)
+text(0.6,1150,'DOTM','HorizontalAlignment','center','fontsize',9)
+text(1.4,1150,'DITM','HorizontalAlignment','center','fontsize',9)
+
+%% Puts
+figure('position',[100 100 1200 600])
+hist(mny_beg_p(:,1),60)
+title('Moneyness der Puts an ihrem ersten Handelstag')
+xlabel('Moneyness')
+ylabel('Anzahl')
+line([0.95 0.95],[0 1200],'LineStyle',':',...     % lower bound ATM 
+    'color','r');
+line([1.05 1.05],[0 1200],'LineStyle',':',...     % upper bound ATM 
+    'color','r');
+line([0.8 0.8],[0 1200],'LineStyle',':',...     % lower bound ITM 
+    'color','r');
+line([1.2 1.2],[0 1200],'LineStyle',':',...     % lower bound OTM 
+    'color','r');
+text(1.0,1150,'ATM','HorizontalAlignment','center','fontsize',9)
+text(0.875,1150,'ITM','HorizontalAlignment','center','fontsize',9)
+text(1.125,1150,'OTM','HorizontalAlignment','center','fontsize',9)
+text(0.6,1150,'DITM','HorizontalAlignment','center','fontsize',9)
+text(1.4,1150,'DOTM','HorizontalAlignment','center','fontsize',9)
+
+%% All
+figure('position',[100 100 1200 600])
+hist([mny_beg_c(:,1); mny_beg_p(:,1)],60)
+title('Moneyness aller Optionen an ihrem ersten Handelstag')
+xlabel('Moneyness')
+ylabel('Anzahl')
+line([0.95 0.95],[0 2500],'LineStyle',':',...     % lower bound ATM 
+    'color','r');
+line([1.05 1.05],[0 2500],'LineStyle',':',...     % upper bound ATM 
+    'color','r');
+line([0.8 0.8],[0 2500],'LineStyle',':',...     % lower bound OTM/ITM 
+    'color','r');
+line([1.2 1.2],[0 2500],'LineStyle',':',...     % lower bound ITM/ OTM 
+    'color','r');
+text(1.0,2420,'ATM','HorizontalAlignment','center','fontsize',9)
+text(0.875,2420,'OTM /','HorizontalAlignment','center','fontsize',9)
+text(0.875,2350,'ITM','HorizontalAlignment','center','fontsize',9)
+text(1.125,2420,'ITM /','HorizontalAlignment','center','fontsize',9)
+text(1.125,2350,'OTM','HorizontalAlignment','center','fontsize',9)
+text(0.6,2420,'DOTM / DITM','HorizontalAlignment','center','fontsize',9)
+text(1.4,2420,'DITM / DOTM','HorizontalAlignment','center','fontsize',9)
+
+%% Moneyness aller Optionen zu jedem Handelstag
+figure('position',[100 100 1200 600])
+hist([callPrices.mnyness(:); putPrices.mnyness(:)],60)
+title('Moneyness aller Kurse ')
+xlabel('Moneyness')
+ylabel('Anzahl')
+line([0.95 0.95],[0 300000],'LineStyle',':',...     % lower bound ATM 
+    'color','r');
+line([1.05 1.05],[0 300000],'LineStyle',':',...     % upper bound ATM 
+    'color','r');
+line([0.8 0.8],[0 300000],'LineStyle',':',...     % lower bound OTM/ITM 
+    'color','r');
+line([1.2 1.2],[0 300000],'LineStyle',':',...     % lower bound ITM/ OTM 
+    'color','r');
+text(1.0,280000,'ATM','HorizontalAlignment','center','fontsize',9)
+text(0.875,280000,'OTM /','HorizontalAlignment','center','fontsize',9)
+text(0.875,270000,'ITM','HorizontalAlignment','center','fontsize',9)
+text(1.125,280000,'ITM /','HorizontalAlignment','center','fontsize',9)
+text(1.125,270000,'OTM','HorizontalAlignment','center','fontsize',9)
+text(0.6,280000,'DOTM / DITM','HorizontalAlignment','center','fontsize',9)
+text(1.4,280000,'DITM / DOTM','HorizontalAlignment','center','fontsize',9)
+
+%% Restlaufzeiten am Anfang der Option (Calls/Puts/alle Optionen)
+
+hist(mat_beg_c(:,1), 60)
+title('(Rest-)Laufzeiten der Calls an ihrem ersten Handelstag')
+xlabel('Laufzeit in Jahren')
+ylabel('Anzahl')
+
+hist(mat_beg_p(:,1), 60)
+title('(Rest-)Laufzeiten der Puts an ihrem ersten Handelstag')
+xlabel('Laufzeit in Jahren')
+ylabel('Anzahl')
+
+hist(mat_beg(:,1), 60)
+title('(Rest-)Laufzeiten aller Optionen an ihrem ersten Handelstag')
+xlabel('Laufzeit in Jahren')
+ylabel('Anzahl')
+
+%% Preise der Optionen an ihrem ersten Handelstag
+hist(prc_beg_p(:,1), 40)
+hist(prc_beg_c(:,1), 40)
+
+ausreisserp = prc_beg_p(prc_beg_p(:,1)>=6000);
+ausreisserc = prc_beg_c(prc_beg_c(:,1)>=6000);
+
+% hist ohne Ausreiﬂer
+for i = 1:length(ausreisserp)
+any(prc_beg_p(:,1)==ausreisserp(i),2);
+end
+
 %% % DAX VOLATILITIES
 figure('position',[100 100 1200 600])
 volap = plot(daxVals.DateFormat,daxVals.vol20, ...
@@ -292,4 +406,7 @@ xlabel('days')
 ylabel('volatility (in %)')
 legend('Vola20','Vola60','Vola120','Vola255', 'Location','northeast')
 savefig('figures/hist_vola.fig');
+
+
+
 

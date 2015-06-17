@@ -180,3 +180,12 @@ callopt.Properties.VariableNames{8} = 'EONIA';
 cohortParams.Properties.VariableNames{3} = 'EONIA';
 putopt.Properties.VariableNames{2} = 'Price';
 callopt.Properties.VariableNames{2} = 'Price';
+
+%% Load Implied Volatility and add to callopt/putopt
+load ImplVola_call; load ImplVola_put;
+
+callopt = [callopt table(ImplVola_call) ];
+callPrices.Properties.VariableNames{12} = 'ImplVola';
+putopt = [putopt table(ImplVola_put) ];
+putPrices.Properties.VariableNames{12} = 'ImplVola';
+
