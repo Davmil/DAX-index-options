@@ -1,12 +1,13 @@
 %% % ############ 1) Importing, manipulating of options data ###############
 
-cd C:\Users\David\Documents\Bachelorarbeit\main;
+% cd C:\Users\David\Documents\Bachelorarbeit\main;
 % cd D:\Bachelorarbeit\main;
 format short g
 
 %% % 1a) Import dataset datorig
 
 filename = 'C:\Users\David\Documents\Bachelorarbeit\data\_dat_orig.txt';
+filename = 'data/_dat_orig.txt';
 delimiter = '\t';
 startRow = 2;
 
@@ -23,6 +24,7 @@ datorig = table(dataArray{1:end-1}, 'VariableNames', {'Date','Option_Price','Bid
 clearvars filename delimiter startRow formatSpec fileID dataArray ans;
 
 %% Manipulate
+% removing bid and ask price columns
 datorig.Bid = []; datorig.Ask = [];
 
 %% Seperate in Call and Put
@@ -31,37 +33,52 @@ callopt = datorig(datorig.IsCall==1,:);
 putopt = datorig(datorig.IsCall==0,:);
 
 %% Insert ID variable into datorig table
+
+% where did they originally come from?
 load callPrices
 load putPrices
-% Calls
+
+%% Calls
+% unnecessary sorting operations?
 callopt = sortrows(callopt,'Expiry','ascend');
 callopt = sortrows(callopt,'Strike','ascend');
 callopt = sortrows(callopt,'Date','ascend');
 callPrices = sortrows(callPrices,'Strike','ascend');
 callPrices = sortrows(callPrices,'Date','ascend');
+
+% adding option IDs: horizontal concatenation slightly unstable
+% use join or calculate IDs based on option information in callopt table
 callopt = [callopt callPrices.ID];
 callopt.Properties.VariableNames{11} = 'ID';
 
 %% Puts
+% same as for calls
 putopt = sortrows(putopt,'Expiry','ascend');
 putopt = sortrows(putopt,'Strike','ascend');
 putopt = sortrows(putopt,'Date','ascend');
 putPrices = sortrows(putPrices,'Strike','ascend');
 putPrices = sortrows(putPrices,'Date','ascend');
+
+% adding option IDs
 putopt = [putopt putPrices.ID];
 putopt.Properties.VariableNames{11} = 'ID';
-%% % 2a) Save the data to an .mat-file
-% save callopt callopt;
-% save putopt putopt;
-% save datorig datorig;
-% save opts opts
-% save optprices optPrices
-% save daxvals daxVals
-% save cohortpars cohortParams
-% save addobs0913 addObs0609
-% save addobs1314 addObs0913
-% clear all
 
+%% % 2a) Save the data to an .mat-file
+save(fullfile('data', 'callopt.mat'), 'callopt');
+save(fullfile('data', 'putopt.mat'), 'putopt');
+save(fullfile('data', 'datorig.mat'), 'datorig');
+
+% the following variables are not part of the current workspace?!
+% save(fullfile('data', 'opts.mat'), 'opts');
+% save(fullfile('data', 'optPrices.mat'), 'optprices');
+% save(fullfile('data', 'daxVals.mat'), 'daxvals');
+% save(fullfile('data', 'cohortParams.mat'), 'cohortpars');
+% save(fullfile('data', 'addObs0609.mat'), 'addobs0913');
+% save(fullfile('data', 'addObs0913.mat'), 'addobs1314');
+
+%%
+
+clear all
 
 %% % 2b) Load .mat-datasets ##############################################
 % ########################################################################
@@ -76,6 +93,8 @@ load putPrices
 load callopt
 load putopt
 
+% call / put encoding should better be boolean true/false than string
+% 'true' or 'false'
 calls = opts(strcmp(opts.IsCall,'true'),:);
 puts = opts(strcmp(opts.IsCall,'false'),:);
 
@@ -84,6 +103,7 @@ puts = opts(strcmp(opts.IsCall,'false'),:);
 
 % 2007: 253 
 
+% expressing time to maturity in days
 callPrices = [callPrices table(callPrices.Time_to_Maturity*255)];
 callPrices.Properties.VariableNames{6} = 'workingdays2mat';
 putPrices = [putPrices table(putPrices.Time_to_Maturity*255)];
@@ -93,6 +113,8 @@ callPrices.workingdays2mat = round(callPrices.workingdays2mat);
 putPrices.workingdays2mat = round(putPrices.workingdays2mat);
 
 %% % Number of call and put options / Create one table with merely calls and one with merely puts:
+
+% should this cell be run once or never?!
 
 % length(opts(strcmp(opts.IsCall,'true'),2).Expiry) 
 % length(opts(strcmp(opts.IsCall,'false'),2).Expiry)
@@ -167,7 +189,7 @@ putPrices.workingdays2mat = round(putPrices.workingdays2mat);
 % Nun haben wir Optionsscheine im Datensatz, die eine Laufzeit von
 % mindestens 2 Wochen bzw. 10 Handelstagen aufweisen!!!
 
-%%
+%% add DAX prices
 callPrices = [callPrices table(callopt.DAX)];
 callPrices.Properties.VariableNames{7} = 'DAX';
 
@@ -177,15 +199,21 @@ putPrices.Properties.VariableNames{7} = 'DAX';
 %% Renaming
 putopt.Properties.VariableNames{8} = 'EONIA';
 callopt.Properties.VariableNames{8} = 'EONIA';
+
 cohortParams.Properties.VariableNames{3} = 'EONIA';
+
 putopt.Properties.VariableNames{2} = 'Price';
 callopt.Properties.VariableNames{2} = 'Price';
 
 %% Load Implied Volatility and add to callopt/putopt
+
+% why loading in this script? implied vola is not yet calculated.
+% or do you run this script on each matlab startup?
 load ImplVola_call; load ImplVola_put;
 
 callopt = [callopt table(ImplVola_call) ];
-callPrices.Properties.VariableNames{12} = 'ImplVola';
+callopt.Properties.VariableNames{12} = 'ImplVola';
+
 putopt = [putopt table(ImplVola_put) ];
-putPrices.Properties.VariableNames{12} = 'ImplVola';
+putopt.Properties.VariableNames{12} = 'ImplVola';
 

@@ -3,19 +3,33 @@
 % ############################ 1) DAX ###################################
 
 
-%% % Zeitliche Abhängigkeit ( acf )
+%% % Zeitliche Abhï¿½ngigkeit ( acf )
 
 %% % Historical volatility (see Haug, p.445 or Hull, p.304 below )
 % Historical Vola:
 daxlogreturns = log(daxVals.DAX(2:end)./daxVals.DAX(1:end-1));
+
+% required somewhere else?!
 absreturns = abs(daxlogreturns); % absolute Daxrenditen
+
 af=255;  % annualizing factor/ number of trading days in a year
 n1=20; n2=40; n3=60; n4=80; n5=120; n6=180; n7=255; % observation period (1, 2, 3, 4, 6, 9, 12 months)
 % Movering volatility estimator:
 rm = mean(daxlogreturns);
 
+% the following calculations show high code duplicity! never copy-paste a
+% code part multiple times. it is error prone and if you need to adapt
+% something then you need to change it at multiple places.
+% either implement rolling volatility calculation in separate function
+% which gets called multiple times, or write another for loop which
+% iterates over window sizes 20, 40, ...
+
 % 20 working days volatility (1 month)
-vol20 = zeros(1908,1);
+
+% never hard-code number of observations: data size might change with
+% arrival of new data,...
+nObs = size(daxVals, 1);
+vol20 = zeros(nObs,1);
 j=1;
 for i = 20:length(daxlogreturns)    
     vol20(i+1) = sqrt((af/(n1-1)) * sum((daxlogreturns(j:i) - rm).^2));
@@ -75,6 +89,11 @@ daxVals = [daxVals table(vol20) table(vol40) table(vol60) table(vol80) ...
 clearvars vol* rm n1 n2 n3 n4 n5 n6 n7 i j af
 
 daxVals=standardizeMissing(daxVals,{0},'DataVariables',{'vol20','vol40','vol60','vol80','vol120','vol180','vol255'});
+
+%% visualize empirical volatilities
+volas = table2array(daxVals(:, 4:end));
+plot(daxVals{:, 3}, volas)
+datetick 'x'
 
 %% Vola descriptives:
 descript_vola = zeros(6,7);
@@ -137,11 +156,16 @@ descript_vola(6,7) = max(daxVals.vol255(256:end));
 % ############################ 2) Options ################################
 
 % Number of calls/puts with certain Strike
+
+% may more interesting than the number of options with absolute
+% strike could be the number of options relative to the current DAX price
+
 % Calls
 calls = sortrows(calls,'Strike','ascend');
 j=2;
 num_c(1,1) = calls.Strike(1);
 
+% you could just use unique(calls.Strike) instead
 for i = 1:length(calls.Strike)
     if(num_c(j-1,1) ~= calls.Strike(i) )
         num_c(j,1) = calls.Strike(i);
@@ -176,6 +200,7 @@ max(cohortParams.Time_to_Maturity) % 5.0039
 min(cohortParams.Time_to_Maturity) % 0.0039216
 
 % 90 options with a one day maturity (the minimum of 'Time to maturity')
+% NOTE: not options, but cohorts
 numel(cohortParams(cohortParams.Time_to_Maturity==min(cohortParams.Time_to_Maturity),:).Time_to_Maturity)
 
 % 1 options with a  day maturity (the maximum of 'Time to maturity')
@@ -212,7 +237,7 @@ min(putPrices.mnyness)
 mny_beg_c = zeros( length(calls.ID),1 );
 for i = 1:length(calls.ID)
     opt = callPrices(strcmp(callPrices.ID,calls.ID(i)),8); % Erste Zeile der jeweiligen 
-                                                        % Call/Put Vektoren ist die mit der höchsten Restlaufzeit
+                                                        % Call/Put Vektoren ist die mit der hï¿½chsten Restlaufzeit
     mny_beg_c(i) = opt.mnyness(1);
 end
 
@@ -220,7 +245,7 @@ end
 mny_beg_p = zeros( length(puts.ID),1 );
 for i = 1:length(puts.ID)
     opt = putPrices(strcmp(putPrices.ID,puts.ID(i)),8); % Erste Zeile der jeweiligen 
-                                                        % Call/Put Vektoren ist die mit der höchsten Restlaufzeit
+                                                        % Call/Put Vektoren ist die mit der hï¿½chsten Restlaufzeit
     mny_beg_p(i) = opt.mnyness(1);
 end
 
@@ -233,7 +258,7 @@ mat(:,1) = 1:1:max(callPrices.workingdays2mat); % Erzeuge Array mit einer Zahlen
                                                         
 % Calls (2.Spalte)                                                        
 mat(:,2) = zeros( max(callPrices.workingdays2mat),1); 
-% Diese Spalte mit Nullern füllen (Anzahl der Optionsscheine mit gegebener
+% Diese Spalte mit Nullern fï¿½llen (Anzahl der Optionsscheine mit gegebener
 % Maturity (in Handelstagen) )
 
 for i = 1:length(calls.ID)
@@ -345,7 +370,7 @@ end
 % % Example
 % % any call option:
 % B = callPrices(strcmp(callPrices.ID,'c_20080620_8450'),:);
-% % Füge die jeweiligen EONIA-Zinssätze an B hinzu
+% % Fï¿½ge die jeweiligen EONIA-Zinssï¿½tze an B hinzu
 % C = cohortParams(strcmp(cohortParams.Expiry,'2008-06-20'),1:3);
 % C.Expiry= [];
 % C(1:251,:) = [];
@@ -413,6 +438,8 @@ for i=1:length(calls.ID)
  
     % Relative Pricing Error
 
+    comperr3 = (repmat(compare(:,1), 1, 5) - compare(:, 2:end))./compare(:, 2:end);
+    
     comperr2(:,1) = (compare(:,1) - compare(:,2))./compare(:,2);    
     comperr2(:,2) = (compare(:,1) - compare(:,3))./compare(:,3);
     comperr2(:,3) = (compare(:,1) - compare(:,4))./compare(:,4);
@@ -608,7 +635,7 @@ for i=1:length(calls.ID)
     % Relative Pricing Error
 
     comperr2(:,1) = (compare(:,1) - compare(:,2))./compare(:,2);    
-    relprcerror(i,1) = mean(comperr2(:,1)); % Mittlerer Fehler für jede Call-Option in ihrer gesamten Laufzeit
+    relprcerror(i,1) = mean(comperr2(:,1)); % Mittlerer Fehler fï¿½r jede Call-Option in ihrer gesamten Laufzeit
 
     clearvars comperr2 compare
 end  
@@ -639,7 +666,7 @@ for i=1:length(puts.ID)
     % Relative Pricing Error
 
     comperr2(:,1) = (compare(:,1) - compare(:,2))./compare(:,2);    
-    relprcerror(i,1) = mean(comperr2(:,1)); % Mittlerer Fehler für jede Call-Option in ihrer gesamten Laufzeit
+    relprcerror(i,1) = mean(comperr2(:,1)); % Mittlerer Fehler fï¿½r jede Call-Option in ihrer gesamten Laufzeit
     
     clearvars comperr2 compare
 end    

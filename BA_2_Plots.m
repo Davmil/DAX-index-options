@@ -1,6 +1,8 @@
 %% % ################# 2) Plots of the options data ########################
 
 % !!!!!!!!!!!!!!!!!!! Zuerst BA_3 durchlaufen lassen !!!!!!!!!!!!!!!!!!!!
+% -> renaming scripts chronologically??
+
 %%% Eonia:
 
 plot(cohortParams.DateFormat,cohortParams.EONIA,'r');
@@ -388,7 +390,7 @@ hist(prc_beg_c(:,1), 40)
 ausreisserp = prc_beg_p(prc_beg_p(:,1)>=6000);
 ausreisserc = prc_beg_c(prc_beg_c(:,1)>=6000);
 
-% hist ohne Ausreißer
+% hist ohne Ausreiï¿½er
 for i = 1:length(ausreisserp)
 any(prc_beg_p(:,1)==ausreisserp(i),2);
 end
