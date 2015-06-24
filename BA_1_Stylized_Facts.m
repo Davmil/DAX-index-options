@@ -1,139 +1,176 @@
 %% % #################### stylised facts ################################## 
 
+% Run start up script
+run('BA_0_StartUp.m');
+
 % ############################ 1) DAX ###################################
 
 
-%% % Zeitliche Abhängigkeit ( acf )
-
 %% % Historical volatility (see Haug, p.445 or Hull, p.304 below )
-% Historical Vola:
+
+% Log returns:
 daxlogreturns = log(daxVals.DAX(2:end)./daxVals.DAX(1:end-1));
-absreturns = abs(daxlogreturns); % absolute Daxrenditen
-af=255;  % annualizing factor/ number of trading days in a year
-n1=20; n2=40; n3=60; n4=80; n5=120; n6=180; n7=255; % observation period (1, 2, 3, 4, 6, 9, 12 months)
+% absolute Daxrenditen
+absreturns = abs(daxlogreturns); 
+% annualizing factor/ number of trading days in a year
+af=255;
+% observation periods (1, 2, 3, 4, 6, 9, 12 months)
+n = [20;40;60;80;120;180;255]; 
 % Movering volatility estimator:
 rm = mean(daxlogreturns);
+% Anzahl an DAX-Handelstagen:
+nObs = length(daxVals.DAX);
 
-% 20 working days volatility (1 month)
-vol20 = zeros(1908,1);
-j=1;
-for i = 20:length(daxlogreturns)    
-    vol20(i+1) = sqrt((af/(n1-1)) * sum((daxlogreturns(j:i) - rm).^2));
-    j = j + 1;
+% (x working days) volatility 
+vol = zeros(1908,7);
+
+for k = 1:length(n)
+    j=1;
+    for i = n(k):length(daxlogreturns)    
+        vol(i+1,k) = sqrt((af/(n(k)-1)) * sum((daxlogreturns(j:i) - rm).^2));
+        j = j + 1;
+    end
+    
 end
 
-% 40 working days volatility (2 months)
-vol40 = zeros(1908,1);
-j=1;
-for i = 40:length(daxlogreturns)    
-    vol40(i+1) = sqrt((af/(n2-1)) * sum((daxlogreturns(j:i) - rm).^2));
-    j = j + 1;
-end
 
-% 60 working days volatility (3 months)
-vol60 = zeros(1908,1);
-j=1;
-for i = 60:length(daxlogreturns)    
-    vol60(i+1) = sqrt((af/(n3-1)) * sum((daxlogreturns(j:i) - rm).^2));
-    j = j + 1;
-end
-
-% 80 working days volatility (4 months)
-vol80 = zeros(1908,1);
-j=1;
-for i = 80:length(daxlogreturns)    
-    vol80(i+1) = sqrt((af/(n4-1)) * sum((daxlogreturns(j:i) - rm).^2));
-    j = j + 1;
-end
-
-% 120 working days volatility (6 months)
-vol120 = zeros(1908,1);
-j=1;
-for i = 120:length(daxlogreturns)    
-    vol120(i+1) = sqrt((af/(n5-1)) * sum((daxlogreturns(j:i) - rm).^2));
-    j = j + 1;
-end
-
-% 180 working days volatility (9 months)
-vol180 = zeros(1908,1);
-j=1;
-for i = 180:length(daxlogreturns)    
-    vol180(i+1) = sqrt((af/(n6-1)) * sum((daxlogreturns(j:i) - rm).^2));
-    j = j + 1;
-end
-
-% 255 working days volatility (1 year)
-vol255 = zeros(1908,1);
-j=1;
-for i = 255:length(daxlogreturns)    
-    vol255(i+1) = sqrt((af/(n7-1)) * sum((daxlogreturns(j:i) - rm).^2));
-    j = j + 1;
-end
-
-daxVals = [daxVals table(vol20) table(vol40) table(vol60) table(vol80) ...
-           table(vol120) table(vol180) table(vol255)];
-clearvars vol* rm n1 n2 n3 n4 n5 n6 n7 i j af
+daxVals = [daxVals table(vol(:,1), vol(:,2), vol(:,3), vol(:,4), vol(:,5), ...
+                         vol(:,6), vol(:,7))];
+daxVals.Properties.VariableNames = {'Date' 'DAX' 'DateFormat' ...
+                'vol20' 'vol40' 'vol60' 'vol80' 'vol120' 'vol180' 'vol255'};
+clearvars rm i k j af nObs;
 
 daxVals=standardizeMissing(daxVals,{0},'DataVariables',{'vol20','vol40','vol60','vol80','vol120','vol180','vol255'});
 
 %% Vola descriptives:
 descript_vola = zeros(6,7);
 
+for i = 1:length(n)
 % mean
-descript_vola(1,1) = mean(daxVals.vol20(21:end));
-descript_vola(1,2) = mean(daxVals.vol40(41:end));
-descript_vola(1,3) = mean(daxVals.vol60(61:end));
-descript_vola(1,4) = mean(daxVals.vol80(81:end));
-descript_vola(1,5) = mean(daxVals.vol120(121:end));
-descript_vola(1,6) = mean(daxVals.vol180(181:end));
-descript_vola(1,7) = mean(daxVals.vol255(256:end));
-
+descript_vola(1,i) = mean(vol(n(i)+1:end,i));
 % std. error
-descript_vola(2,1) = std(daxVals.vol20(21:end));
-descript_vola(2,2) = std(daxVals.vol40(41:end));
-descript_vola(2,3) = std(daxVals.vol60(61:end));
-descript_vola(2,4) = std(daxVals.vol80(81:end));
-descript_vola(2,5) = std(daxVals.vol120(121:end));
-descript_vola(2,6) = std(daxVals.vol180(181:end));
-descript_vola(2,7) = std(daxVals.vol255(256:end));
-
+descript_vola(2,i) = std(vol(n(i)+1:end,i));
 % skewness
-descript_vola(3,1) = skewness(daxVals.vol20(21:end));
-descript_vola(3,2) = skewness(daxVals.vol40(41:end));
-descript_vola(3,3) = skewness(daxVals.vol60(61:end));
-descript_vola(3,4) = skewness(daxVals.vol80(81:end));
-descript_vola(3,5) = skewness(daxVals.vol120(121:end));
-descript_vola(3,6) = skewness(daxVals.vol180(181:end));
-descript_vola(3,7) = skewness(daxVals.vol255(256:end));
-
+descript_vola(3,i) = skewness(vol(n(i)+1:end,i));
 % kurtosis
-descript_vola(4,1) = kurtosis(daxVals.vol20(21:end));
-descript_vola(4,2) = kurtosis(daxVals.vol40(41:end));
-descript_vola(4,3) = kurtosis(daxVals.vol60(61:end));
-descript_vola(4,4) = kurtosis(daxVals.vol80(81:end));
-descript_vola(4,5) = kurtosis(daxVals.vol120(121:end));
-descript_vola(4,6) = kurtosis(daxVals.vol180(181:end));
-descript_vola(4,7) = kurtosis(daxVals.vol255(256:end));
-
+descript_vola(4,i) = kurtosis(vol(n(i)+1:end,i));
 % minimum
-descript_vola(5,1) = min(daxVals.vol20(21:end));
-descript_vola(5,2) = min(daxVals.vol40(41:end));
-descript_vola(5,3) = min(daxVals.vol60(61:end));
-descript_vola(5,4) = min(daxVals.vol80(81:end));
-descript_vola(5,5) = min(daxVals.vol120(121:end));
-descript_vola(5,6) = min(daxVals.vol180(181:end));
-descript_vola(5,7) = min(daxVals.vol255(256:end));
-
+descript_vola(5,i) = min(vol(n(i)+1:end,i));
 % maximum
-descript_vola(6,1) = max(daxVals.vol20(21:end));
-descript_vola(6,2) = max(daxVals.vol40(41:end));
-descript_vola(6,3) = max(daxVals.vol60(61:end));
-descript_vola(6,4) = max(daxVals.vol80(81:end));
-descript_vola(6,5) = max(daxVals.vol120(121:end));
-descript_vola(6,6) = max(daxVals.vol180(181:end));
-descript_vola(6,7) = max(daxVals.vol255(256:end));
+descript_vola(6,i) = max(vol(n(i)+1:end,i));
+end
+clearvars i n vol;
 
-%%  
+%% GARCH(1,1) Volatility Model
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Out-of-Sample Prognose + Bewertungsabweichung  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% 1) Out-of-Sample Prognose
+
+Mdl = garch('GARCHLags',1,'ARCHLags',1);
+
+% Schaetzung: Matrix mit Schaetzer erstellen:
+orig=256;
+Tmax=length(daxlogreturns);
+pars = nan(Tmax-orig,3); % (for EXTENDING WINDOW)
+pars2 = nan(Tmax-orig,3); % (for MOVING WINDOW)
+
+k = 1;
+for i = orig:(Tmax)
+    % Schaetzung der Parameter (EXTENDING WINDOW)
+    EstMdl = estimate(Mdl,daxlogreturns(1:i));
+    pars(k,1) = EstMdl.Constant;
+    pars(k,2) = cell2mat(EstMdl.GARCH);
+    pars(k,3) = cell2mat(EstMdl.ARCH);
+ 
+    % Schaetzung der Parameter (MOVING WINDOW)
+    EstMdl = estimate(Mdl,daxlogreturns((i-255):i));
+    pars2(k,1) = EstMdl.Constant;
+    if (EstMdl.P==0)
+        pars2(k,2) = 0;
+    else
+        pars2(k,2) = cell2mat(EstMdl.GARCH);
+    end
+    pars2(k,3) = cell2mat(EstMdl.ARCH);    
+    
+    
+    k = k + 1;
+end
+
+% Plote die Parameter alpha, beta und gamma:
+subplot(3,2,1);plot(pars(:,2));title('Alpha Ext. wind.')
+subplot(3,2,2);plot(pars2(:,2));title('Alpha Mov. wind.')
+subplot(3,2,3);plot(pars(:,3));title('Beta Ext. wind.')
+subplot(3,2,4);plot(pars2(:,3));title('Beta Mov. wind.')
+subplot(3,2,5);plot(pars(:,1));title('Gamma Ext. wind.')
+subplot(3,2,6);plot(pars2(:,1));title('Gamma Mov. wind.')
+
+
+% Vola schaetzen:
+nObs = length(daxlogreturns);
+VolStart=255;
+garch_vol=nan(nObs,2);
+
+% Startwert für die Vola:
+garch_vol(VolStart,1) = sqrt(var(daxlogreturns(1:255))); %(EXTENDING WINDOW)
+garch_vol(VolStart,2) = sqrt(var(daxlogreturns(1:255))); %(MOVING WINDOW)
+
+for i = 1:(nObs-VolStart)
+    % Rekursive Schaetzung der Vola (EXTENDING WINDOW)
+    garch_vol(VolStart+i,1) = sqrt( pars(i,1) + pars(i,2)*daxlogreturns(VolStart + i - 1,1)^2 + ...
+                      pars(i,3)*garch_vol(VolStart + i - 1,1)^2 );
+                  
+    % Rekursive Schaetzung der Vola (MOVING WINDOW)
+    garch_vol(VolStart+i,2) = sqrt( pars2(i,1) + pars2(i,2)*daxlogreturns(VolStart + i - 1,1)^2 + ...
+                      pars2(i,3)*garch_vol(VolStart + i - 1,1)^2 );    
+                  
+end
+
+garch_vol = [ daxVals.Date(2:end) table(garch_vol(:,1), garch_vol(:,2)) ];
+
+% => Wieso sind die "Garch"-Volas im Vergleich zu den historischen bzw.
+% impliziten Volas so klein?
+
+% 2) Bewertungsabweichung
+
+%Preis einer Option mit dieser Vola
+garcherror_calls= calls(:,1);
+for i=1:length(calls.ID)
+    option = callopt(strcmp(callopt.ID,calls.ID(i)),:);
+
+
+    anf = find( strcmp( daxVals.Date,option.Date(1) ) );
+    schl  = find( strcmp( daxVals.Date,option.Date(1) ) ) + length(option.Date) - 1;
+
+   
+    St   = option.DAX;
+    K    = option.Strike;
+    r    = option.EONIA;
+    T    = option.Time_to_Maturity;
+    V_exd  = garch_vol.Var1(anf:schl); %(EXTENDING WINDOW)
+    V_mov  = garch_vol.Var2(anf:schl); %(MOVING WINDOW)
+    
+    compare(:,1) = option.Price;
+    compare(:,2) = bs_price(St,K,r,T,V_exd);
+    compare(:,3) = bs_price(St,K,r,T,V_mov);
+    
+
+    comperr2 = (repmat(compare(:,1), 1, 2) - compare(:, 2:end))./compare(:, 2:end);
+    
+	meanerror(i,1) = mean(comperr2(:,1)); %(EXTENDING WINDOW)
+    meanerror(i,2) = mean(comperr2(:,2)); %(MOVING WINDOW)
+
+    
+    clearvars comperr2 compare
+end    
+    garcherror_calls = [garcherror_calls table(meanerror(i,1), meanerror(i,2))];
+    garcherror_calls.Properties.VariableNames = {'ID' 'ExtWind' 'MovWind'};
+    save garcherror_calls garcherror_calls;
+
+
+% Garch-Volas sind schlechter als die historische Vola.
 % ############################ 2) Options ################################
 
 % Number of calls/puts with certain Strike
