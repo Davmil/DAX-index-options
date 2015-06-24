@@ -1,9 +1,9 @@
-%% % #################### 3) stylised facts ################################## 
+%% % #################### stylised facts ################################## 
 
 % ############################ 1) DAX ###################################
 
 
-%% % Zeitliche Abhängigkeit ( acf )
+%% % Zeitliche AbhÃ¤ngigkeit ( acf )
 
 %% % Historical volatility (see Haug, p.445 or Hull, p.304 below )
 % Historical Vola:
@@ -212,7 +212,7 @@ min(putPrices.mnyness)
 mny_beg_c = zeros( length(calls.ID),1 );
 for i = 1:length(calls.ID)
     opt = callPrices(strcmp(callPrices.ID,calls.ID(i)),8); % Erste Zeile der jeweiligen 
-                                                        % Call/Put Vektoren ist die mit der höchsten Restlaufzeit
+                                                        % Call/Put Vektoren ist die mit der hÃ¶chsten Restlaufzeit
     mny_beg_c(i) = opt.mnyness(1);
 end
 
@@ -220,7 +220,7 @@ end
 mny_beg_p = zeros( length(puts.ID),1 );
 for i = 1:length(puts.ID)
     opt = putPrices(strcmp(putPrices.ID,puts.ID(i)),8); % Erste Zeile der jeweiligen 
-                                                        % Call/Put Vektoren ist die mit der höchsten Restlaufzeit
+                                                        % Call/Put Vektoren ist die mit der hÃ¶chsten Restlaufzeit
     mny_beg_p(i) = opt.mnyness(1);
 end
 
@@ -233,7 +233,7 @@ mat(:,1) = 1:1:max(callPrices.workingdays2mat); % Erzeuge Array mit einer Zahlen
                                                         
 % Calls (2.Spalte)                                                        
 mat(:,2) = zeros( max(callPrices.workingdays2mat),1); 
-% Diese Spalte mit Nullern füllen (Anzahl der Optionsscheine mit gegebener
+% Diese Spalte mit Nullern fÃ¼llen (Anzahl der Optionsscheine mit gegebener
 % Maturity (in Handelstagen) )
 
 for i = 1:length(calls.ID)
@@ -345,7 +345,7 @@ end
 % % Example
 % % any call option:
 % B = callPrices(strcmp(callPrices.ID,'c_20080620_8450'),:);
-% % Füge die jeweiligen EONIA-Zinssätze an B hinzu
+% % FÃ¼ge die jeweiligen EONIA-ZinssÃ¤tze an B hinzu
 % C = cohortParams(strcmp(cohortParams.Expiry,'2008-06-20'),1:3);
 % C.Expiry= [];
 % C(1:251,:) = [];
@@ -608,7 +608,7 @@ for i=1:length(calls.ID)
     % Relative Pricing Error
 
     comperr2(:,1) = (compare(:,1) - compare(:,2))./compare(:,2);    
-    relprcerror(i,1) = mean(comperr2(:,1)); % Mittlerer Fehler für jede Call-Option in ihrer gesamten Laufzeit
+    relprcerror(i,1) = mean(comperr2(:,1)); % Mittlerer Fehler fÃ¼r jede Call-Option in ihrer gesamten Laufzeit
 
     clearvars comperr2 compare
 end  
@@ -639,7 +639,7 @@ for i=1:length(puts.ID)
     % Relative Pricing Error
 
     comperr2(:,1) = (compare(:,1) - compare(:,2))./compare(:,2);    
-    relprcerror(i,1) = mean(comperr2(:,1)); % Mittlerer Fehler für jede Call-Option in ihrer gesamten Laufzeit
+    relprcerror(i,1) = mean(comperr2(:,1)); % Mittlerer Fehler fÃ¼r jede Call-Option in ihrer gesamten Laufzeit
     
     clearvars comperr2 compare
 end    
