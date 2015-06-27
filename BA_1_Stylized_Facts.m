@@ -683,3 +683,22 @@ end
     prcingerrorImplVola_puts.Properties.VariableNames = {'ID' 'prcerrorImplVola'};
     save prcingerrorImplVola_puts prcingerrorImplVola_puts;
 
+%% Time Value (Zeitwert = Optionspreis - Innerer Wert)
+
+% Innerer Wert
+callopt = [callopt table( callopt.DAX - callopt.Strike ) ];
+putopt = [putopt table( putopt.Strike - putopt.DAX ) ];
+callopt.Properties.VariableNames{14} = 'IntrVal';  
+putopt.Properties.VariableNames{14} = 'IntrVal';
+
+% Time Value
+callopt = [callopt table( callopt.Price - callopt.IntrVal ) ];
+putopt = [putopt table( putopt.Price - putopt.IntrVal ) ];
+callopt.Properties.VariableNames{15} = 'TimeVal';  
+putopt.Properties.VariableNames{15} = 'TimeVal';
+%% Any <0?
+
+negTimeValC=callopt(callopt.TimeVal<0,[11 1 2 7 9 13 15]);
+negTimeValP=putopt(putopt.TimeVal<0,[11 1 2 7 9 13 15]);
+negTimeC = unique(negTimeValC.ID);
+negTimeP = unique(negTimeValP.ID);
