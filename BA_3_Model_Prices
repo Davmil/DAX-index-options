@@ -46,34 +46,34 @@ mdlprc_c.vol255 = bs_price(mydatc.DAX,mydatc.Strike, ...
                            mdlprc_c.vol255);  
 
 % Puts
-mdlprc_p.vol20 = bs_price(mydatp.DAX,mydatp.Strike, ...
+[C,mdlprc_p.vol20] = bs_price(mydatp.DAX,mydatp.Strike, ...
                            mydatp.EONIA,mydatp.Time_to_Maturity, ...
                            mdlprc_p.vol20);
                        
-mdlprc_p.vol40 = bs_price(mydatp.DAX,mydatp.Strike, ...
+[C,mdlprc_p.vol40] = bs_price(mydatp.DAX,mydatp.Strike, ...
                            mydatp.EONIA,mydatp.Time_to_Maturity, ...
                            mdlprc_p.vol40);
                        
-mdlprc_p.vol60 = bs_price(mydatp.DAX,mydatp.Strike, ...
+[C,mdlprc_p.vol60] = bs_price(mydatp.DAX,mydatp.Strike, ...
                            mydatp.EONIA,mydatp.Time_to_Maturity, ...
                            mdlprc_p.vol60);
                        
-mdlprc_p.vol80 = bs_price(mydatp.DAX,mydatp.Strike, ...
+[C,mdlprc_p.vol80] = bs_price(mydatp.DAX,mydatp.Strike, ...
                            mydatp.EONIA,mydatp.Time_to_Maturity, ...
                            mdlprc_p.vol80);                       
                        
-mdlprc_p.vol120 = bs_price(mydatp.DAX,mydatp.Strike, ...
+[C,mdlprc_p.vol120] = bs_price(mydatp.DAX,mydatp.Strike, ...
                            mydatp.EONIA,mydatp.Time_to_Maturity, ...
                            mdlprc_p.vol120);     
 
-mdlprc_p.vol180 = bs_price(mydatp.DAX,mydatp.Strike, ...
+[C,mdlprc_p.vol180] = bs_price(mydatp.DAX,mydatp.Strike, ...
                            mydatp.EONIA,mydatp.Time_to_Maturity, ...
                            mdlprc_p.vol180);  
                        
-mdlprc_p.vol255 = bs_price(mydatp.DAX,mydatp.Strike, ...
+[C,mdlprc_p.vol255] = bs_price(mydatp.DAX,mydatp.Strike, ...
                            mydatp.EONIA,mydatp.Time_to_Maturity, ...
                            mdlprc_p.vol255);    
-                       
+clearvars C;                      
 % save mdlprc_c mdlprc_c; save mdlprc_p mdlprc_p;
 % load mdlprc_c; load mdlprc_p;
 
@@ -102,15 +102,15 @@ mdlprcG_c.Mov = bs_price(mydatc.DAX(Xa(1):end),mydatc.Strike(Xa(1):end), ...
                            mydatc.EONIA(Xa(1):end),mydatc.Time_to_Maturity(Xa(1):end), ...
                            mdlprcG_c.Mov);
                        
-mdlprcG_p.Ext = bs_price(mydatp.DAX(Xa(1):end),mydatp.Strike(Xa(1):end), ...
-                           mydatp.EONIA(Xa(1):end), ...
-                           mydatp.Time_to_Maturity(Xa(1):end), ...
+[C,mdlprcG_p.Ext] = bs_price(mydatp.DAX(Xb(1):end),mydatp.Strike(Xb(1):end), ...
+                           mydatp.EONIA(Xb(1):end), ...
+                           mydatp.Time_to_Maturity(Xb(1):end), ...
                            mdlprcG_p.Ext);
                        
-mdlprcG_p.Mov = bs_price(mydatp.DAX(Xa(1):end),mydatp.Strike(Xa(1):end), ...
-                           mydatp.EONIA(Xa(1):end),mydatp.Time_to_Maturity(Xa(1):end), ...
+[C,mdlprcG_p.Mov] = bs_price(mydatp.DAX(Xb(1):end),mydatp.Strike(Xb(1):end), ...
+                           mydatp.EONIA(Xb(1):end),mydatp.Time_to_Maturity(Xb(1):end), ...
                            mdlprcG_p.Mov);                       
-                       
+clearvars C;                        
 
 
 
@@ -119,63 +119,36 @@ mdlprcG_p.Mov = bs_price(mydatp.DAX(Xa(1):end),mydatp.Strike(Xa(1):end), ...
 %%                        Implied Volatility 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Determine the Pricing Error with Implied Volatility
-% Calls
-prcingerrorImplVola_calls= calls(:,1);
+% Berechne mittlere Impl Vola pro Tag:
+X = mydatc(:,[1 12]); X.Date= datenum(X.Date); Y = unique(X.Date);
 
-for i=1:length(calls.ID)
-    option = test(strcmp(test.ID,calls.ID(i)),:);
-        
-    St   = option.DAX(2:end);
-    K    = option.Strike(2:end);
-    r    = option.EONIA(2:end);
-    T    = option.Time_to_Maturity(2:end);
-    ImplVola  = option.ImplVola(1:end-1);
+for i = 1: length(Y)-1
+Y(i+1:length(Y),2) = mean(X(X.Date==Y(i),:).ImplVola); % Mittl. Vola vom vorherigen Tag
+end
+Y = table(Y(:,1), Y(:,2));
+Y.Properties.VariableNames = {'Date' 'MeanImplVola'};
+Z = join(X,Y, 'Keys', 'Date');
+mdlprcI_c = [ Z(:,[1 3]) mydatc(:,[11 2]) ];
+clearvars X Y Z;
 
-    compare(:,1) = option.Price(2:end);
-    % Compare the market option prices with the bls prices with ImpliedVola
-    compare(:,2) = bs_price(St,K,r,T,ImplVola);
- 
-    % Relative Pricing Error
+X = mydatp(:,[1 12]); X.Date= datenum(X.Date); Y = unique(X.Date);
+for i = 1: length(Y)-1
+Y(i+1:length(Y),2) = mean(X(X.Date==Y(i),:).ImplVola); % Mittl. Vola vom vorherigen Tag
+end
+Y = table(Y(:,1), Y(:,2));
+Y.Properties.VariableNames = {'Date' 'MeanImplVola'};
+Z = join(X,Y, 'Keys', 'Date');
+mdlprcI_p = [ Z(:,[1 3]) mydatp(:,[11 2]) ];
+clearvars X Y Z;
 
-    comperr2(:,1) = (compare(:,1) - compare(:,2))./compare(:,2);    
-    relprcerror(i,1) = mean(comperr2(:,1)); % Mittlerer Fehler für jede Call-Option in ihrer gesamten Laufzeit
-
-    clearvars comperr2 compare
-end  
-    prcingerrorImplVola_calls = [ prcingerrorImplVola_calls table(relprcerror) ];
-    prcingerrorImplVola_calls.Properties.VariableNames = {'ID' 'prcerrorImplVola'};
-    save prcingerrorImplVola_calls prcingerrorImplVola_calls;
-%%
-eliImpl = prcingerrorImplVola_calls(any(prcingerrorImplVola_calls.prcerrorImplVola > 1 | isnan(prcingerrorImplVola_calls.prcerrorImplVola), 2),1:2);
-prcingerrorImplVola_calls(any(prcingerror_puts.prcerror60 > 1,2),:) = [];
-
-%% % Puts
-
-prcingerrorImplVola_puts= puts(:,1);
-
-for i=1:length(puts.ID)
-    option = putopt(strcmp(putopt.ID,puts.ID(i)),:);
-     
-    
-    St   = option.DAX(2:end);
-    K    = option.Strike(2:end);
-    r    = option.EONIA(2:end);
-    T    = option.Time_to_Maturity(2:end);
-    ImplVola  = option.ImplVola(1:end-1);
-
-    compare(:,1) = option.Price(2:end);
-    % Compare the market option prices with the bls prices with ImpliedVola
-    compare(:,2) = bs_price(St,K,r,T,ImplVola);
- 
-    % Relative Pricing Error
-
-    comperr2(:,1) = (compare(:,1) - compare(:,2))./compare(:,2);    
-    relprcerror(i,1) = mean(comperr2(:,1)); % Mittlerer Fehler für jede Call-Option in ihrer gesamten Laufzeit
-    
-    clearvars comperr2 compare
-end    
-    prcingerrorImplVola_puts.Properties.VariableNames = {'ID' 'prcerrorImplVola'};
-    save prcingerrorImplVola_puts prcingerrorImplVola_puts;
-    
-%% Pricing error seperated into Strike-levels/Time-to-Maturity/Moneyness/Year
+% Berechne Preise
+Xa=find(strcmp(mydatc.Date,'2006-07-04'));
+mdlprcI_c.MeanImplVola(Xa(1):end) = bs_price(mydatc.DAX(Xa(1):end),mydatc.Strike(Xa(1):end), ...
+                           mydatc.EONIA(Xa(1):end),mydatc.Time_to_Maturity(Xa(1):end), ...
+                           mdlprcI_c.MeanImplVola(Xa(1):end));
+                       
+Xb=find(strcmp(mydatp.Date,'2006-07-04'));                      
+[C,mdlprcI_p.MeanImplVola(Xb(1):end)] = bs_price(mydatp.DAX(Xb(1):end),mydatp.Strike(Xb(1):end), ...
+                           mydatp.EONIA(Xb(1):end), ...
+                           mydatp.Time_to_Maturity(Xb(1):end), ...
+                           mdlprcI_p.MeanImplVola(Xb(1):end));
