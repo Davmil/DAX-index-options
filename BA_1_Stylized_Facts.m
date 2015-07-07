@@ -4,6 +4,7 @@ cd C:\Users\David\Documents\Bachelorarbeit\main;
 % cd C:\Users\Pomian\Documents\Bachelorarbeit\main;
 run('BA_0b_Filtering.m');
 
+
 % ############################ 1) DAX ###################################
 %% Vola descriptives:
 descript_vola = zeros(6,7);
@@ -274,7 +275,4 @@ end
 % end 
 % 
 % toc
-
-
-
 
