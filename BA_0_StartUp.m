@@ -100,75 +100,7 @@ putPrices.workingdays2mat = round(putPrices.workingdays2mat);
 % length(opts(strcmp(opts.IsCall,'true'),2).Expiry) 
 % length(opts(strcmp(opts.IsCall,'false'),2).Expiry)
 
-% %% % Optionen im Datensatz mit einer Laufzeit von weniger als zwei Wochen bzw. 10 Handelstagen
-% 
-% % Calls: insgesamt 56 Calls
-% B = unique(callPrices.ID);
-% j=1;
-% for i = 1:length(calls.ID)
-%     opt = callPrices(strcmp(callPrices.ID,B(i,1)),6);
-%     if (max(opt.workingdays2mat)<10)
-%        cless(j,1) = B(i,1);
-% %        cless_cont(j,1) = max(opt.workingdays2mat);
-%        j = j+1;
-%     else 
-%         continue
-%     end      
-% end
-% 
-% % Puts: insgesamt 61 puts
-% B = unique(putPrices.ID);
-% j=1;
-% for i = 1:length(puts.ID)
-%     opt = putPrices(strcmp(putPrices.ID,B(i,1)),6);
-%     if (max(opt.workingdays2mat)<10)
-%        pless(j,1) = B(i,1);
-% %        pless_cont(j,1) = max(opt.workingdays2mat);
-%        j = j+1;
-%     else 
-%         continue
-%     end      
-% end
-% 
-% clearvars j i B opt
-% %% % Entferne Optionen (Puts und Calls) mit einer Laufzeit von weniger als 10 Handelstagen
-% for i = 1:length(cless)     % Calls
-%     rows_to_remove = any(strcmp(callPrices.ID,cless(i)), 2);
-%     rows_to_remove2 = any(strcmp(calls.ID,cless(i)), 2);
-%     rows_to_remove3 = any(strcmp(opts.ID,cless(i)), 2);
-%     rows_to_remove4 = any(strcmp(optPrices.ID,cless(i)), 2);
-%     rows_to_remove5 = any(strcmp(addObs0609.ID,cless(i)), 2);
-%     rows_to_remove6 = any(strcmp(addObs0913.ID,cless(i)), 2);
-%     
-%     callPrices(rows_to_remove,:) = [];
-%     calls(rows_to_remove2,:) = [];
-%     opts(rows_to_remove3,:) = [];
-%     optPrices(rows_to_remove4,:) = [];
-%     addObs0609(rows_to_remove5,:) = [];
-%     addObs0913(rows_to_remove6,:) = [];
-% end
-% clearvars rows_to_remove* i
-% 
-% for i = 1:length(pless)     % Puts
-%     rows_to_remove = any(strcmp(putPrices.ID,pless(i)), 2);
-%     rows_to_remove2 = any(strcmp(puts.ID,pless(i)), 2);
-%     rows_to_remove3 = any(strcmp(opts.ID,pless(i)), 2);
-%     rows_to_remove4 = any(strcmp(optPrices.ID,pless(i)), 2);
-%     rows_to_remove5 = any(strcmp(addObs0609.ID,pless(i)), 2);
-%     rows_to_remove6 = any(strcmp(addObs0913.ID,pless(i)), 2);
-%     
-%     putPrices(rows_to_remove,:) = [];
-%     puts(rows_to_remove2,:) = [];
-%     opts(rows_to_remove3,:) = [];
-%     optPrices(rows_to_remove4,:) = [];
-%     addObs0609(rows_to_remove5,:) = [];
-%     addObs0913(rows_to_remove6,:) = [];
-% end
-% 
-% clearvars rows_to_remove* i cless pless 
 
-% Nun haben wir Optionsscheine im Datensatz, die eine Laufzeit von
-% mindestens 2 Wochen bzw. 10 Handelstagen aufweisen!!!
 
 %% add DAX prices
 callPrices = [callPrices table(callopt.DAX)];
@@ -188,17 +120,28 @@ callopt.Properties.VariableNames{2} = 'Price';
 % Call
 callPrices = [callPrices table(callPrices.Strike./callPrices.DAX)];
 callPrices.Properties.VariableNames{8} = 'mnyness';
+callopt = [callopt table(callopt.Strike./callopt.DAX)];
+callopt.Properties.VariableNames{13} = 'mnyness';
 % Put
 putPrices = [putPrices table(putPrices.Strike./putPrices.DAX)];
 putPrices.Properties.VariableNames{8} = 'mnyness';
+putopt = [putopt table(putopt.Strike./putopt.DAX)];
+putopt.Properties.VariableNames{13} = 'mnyness';
 
-%% Load Implied Volatility and add to callopt/putopt
-% (Damit Du die implizite Vola bekommst)
-% load ImplVola_call; load ImplVola_put;
-% 
-% callopt = [callopt table(ImplVola_call) ];
-% callopt.Properties.VariableNames{12} = 'ImplVola';
-% putopt = [putopt table(ImplVola_put) ];
-% putopt.Properties.VariableNames{12} = 'ImplVola';
-% 
-% save callopt callopt; save putopt putopt;
+%% Time Value (Zeitwert = Optionspreis - Innerer Wert)
+
+% Innerer Wert
+                    % Ganzer Datensatz
+callopt = [callopt table( callopt.DAX - callopt.Strike ) ];
+putopt = [putopt table( putopt.Strike - putopt.DAX ) ];
+callopt.Properties.VariableNames{14} = 'IntrVal';  
+putopt.Properties.VariableNames{14} = 'IntrVal';
+                   
+% Time Value
+                    % Ganzer Datensatz
+callopt = [callopt table( callopt.Price - callopt.IntrVal ) ];
+putopt = [putopt table( putopt.Price - putopt.IntrVal ) ];
+callopt.Properties.VariableNames{15} = 'TimeVal';  
+putopt.Properties.VariableNames{15} = 'TimeVal';
+
+
