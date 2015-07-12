@@ -42,93 +42,55 @@ daxVals=standardizeMissing(daxVals,{0},'DataVariables',{'vol20','vol40','vol60',
 
 
 %% GARCH(1,1) Volatility Model
-% Out-of-Sample Prognose
-% tic
-% Mdl = garch('GARCHLags',1,'ARCHLags',1);
-% 
-% % Schaetzung: Matrix mit Schaetzer erstellen:
-% orig=256;
-% Tmax=length(daxlogreturns);
-% pars = nan(Tmax-orig,3); % (for EXTENDING WINDOW)
-% pars2 = nan(Tmax-orig,3); % (for MOVING WINDOW)
-% % pars3 = nan(15,3); % (for SLIDING WINDOW, 120 working days/6 months)
-% 
-% k = 1;
-% 
-% for i = orig:(Tmax)
-%     % Schaetzung der Parameter (EXTENDING WINDOW)
-%     EstMdl = estimate(Mdl,daxlogreturns(1:i));
-%     pars(k,1) = EstMdl.Constant;
-%     pars(k,2) = cell2mat(EstMdl.GARCH);
-%     pars(k,3) = cell2mat(EstMdl.ARCH);
-%  
-%     % Schaetzung der Parameter (MOVING WINDOW)
-%     EstMdl = estimate(Mdl,daxlogreturns((i-255):i));
-%     pars2(k,1) = EstMdl.Constant;
-%     if (EstMdl.P==0)
-%         pars2(k,2) = 0;
-%     else
-%         pars2(k,2) = cell2mat(EstMdl.GARCH);
-%     end
-%     pars2(k,3) = cell2mat(EstMdl.ARCH);    
-%         
-%     k = k + 1;
-% end
-% toc
-% % Elapsed time is 278.630234 seconds.
-% save pars pars; save pars2 pars2;
-% 
-% 
-% % Schaetzung der Parameter (SLIDING WINDOW, 120 working days)
-% % j=1;
-% % for i = 120:120:1801
-% % 
-% %     EstMdl = estimate(Mdl,daxlogreturns( i-119 : i ));
-% %     
-% %     pars3(j ,1) = EstMdl.Constant;
-% %     pars3(j ,2) = cell2mat(EstMdl.GARCH);
-% %     pars3(j ,3) = cell2mat(EstMdl.ARCH);
-% %     j=j+1; 
-% % end   
-% 
-% 
-% % Plote die Parameter alpha, beta und gamma:
-% subplot(3,2,1);plot(pars(:,2));title('Alpha Ext. wind.')
-% subplot(3,2,2);plot(pars2(:,2));title('Alpha Mov. wind.')
-% subplot(3,2,3);plot(pars(:,3));title('Beta Ext. wind.')
-% subplot(3,2,4);plot(pars2(:,3));title('Beta Mov. wind.')
-% subplot(3,2,5);plot(pars(:,1));title('Gamma Ext. wind.')
-% subplot(3,2,6);plot(pars2(:,1));title('Gamma Mov. wind.')
-% 
-% 
-% % Vola schaetzen:
-% nObs = length(daxlogreturns);
-% VolStart=255;
-% garch_vol=nan(nObs,2);
-% 
-% % Startwert für die Vola:
-% garch_vol(VolStart,1) = sqrt(var(daxlogreturns(1:255))); %(EXTENDING WINDOW)
-% garch_vol(VolStart,2) = sqrt(var(daxlogreturns(1:255))); %(MOVING WINDOW)
-% 
-% for i = 1:(nObs-VolStart)
-%     % Rekursive Schaetzung der Vola (EXTENDING WINDOW)
-%     garch_vol(VolStart+i,1) = sqrt( pars(i,1) + pars(i,2)*daxlogreturns(VolStart + i - 1,1)^2 + ...
-%                       pars(i,3)*garch_vol(VolStart + i - 1,1)^2 );
-%                   
-%     % Rekursive Schaetzung der Vola (MOVING WINDOW)
-%     garch_vol(VolStart+i,2) = sqrt( pars2(i,1) + pars2(i,2)*daxlogreturns(VolStart + i - 1,1)^2 + ...
-%                       pars2(i,3)*garch_vol(VolStart + i - 1,1)^2 );    
-%                   
-% end
-% 
-% garch_vol = [ daxVals.Date(2:end) table(garch_vol(:,1), garch_vol(:,2)) ];
-% garch_vol.Properties.VariableNames = {'Date' 'Ext' 'Mov'};
-% % => Wieso sind die "Garch"-Volas im Vergleich zu den historischen bzw.
-% % impliziten Volas so klein?
-% 
-% save garch_vol garch_vol;
 
-load pars; load pars2; load garch_vol;
+Mdl = garch('GARCHLags',1,'ARCHLags',1);
+
+% Schaetzung: Matrix mit Schaetzer erstellen:
+orig=256;
+Tmax=length(daxlogreturns);
+pars = nan(Tmax-orig,4); % (for EXTENDING WINDOW)
+garch_vol = nan(Tmax,2);
+
+% Komplette Renditezeitreihe
+    EstMdl = estimate( Mdl,daxlogreturns - mean(daxlogreturns), 'Display','off' );
+    v = infer(EstMdl,daxlogreturns); % = long-run average variance per day (nach Hull: V_L)
+    v = sqrt(v);                     % Volatility per day (Hull p.626)
+    garch_vol(:,1) =  sqrt(255)*v;   % Annualising volas
+    
+
+% Mit Fenstern
+tic
+k = 1;
+
+for i = orig:(Tmax)
+    % Schaetzung der Parameter + Vola (EXTENDING WINDOW)
+    EstMdl = estimate( Mdl,daxlogreturns(1:i) - mean(daxlogreturns(1:i)), 'Display','off' );
+    v = infer(EstMdl,daxlogreturns(1:i));
+    v = sqrt(v(end)); % Volatility per day (Hull p.626)
+    pars(k,1) = EstMdl.Constant;
+    pars(k,2) = cell2mat(EstMdl.GARCH);
+    pars(k,3) = cell2mat(EstMdl.ARCH);
+    garch_vol(i,2) =  sqrt(255)*v; % Annualised Vola
+ 
+    k = k + 1;
+end
+save pars pars;
+
+
+
+% Plote die Parameter alpha, beta und gamma:
+subplot(3,1,1);plot(pars(:,2));title('Alpha Ext. wind.')
+subplot(3,1,2);plot(pars(:,3));title('Beta Ext. wind.')
+subplot(3,1,3);plot(pars(:,1));title('Constant Ext. wind.')
+
+
+
+garch_vol = [ daxVals.Date(2:end) table(garch_vol(:,1), garch_vol(:,2)) ];
+garch_vol.Properties.VariableNames = {'Date' 'TimeSer' 'Ext'};
+
+save garch_vol garch_vol;
+toc % Elapsed time is 128.087547 seconds.
+% load pars; load garch_vol;
 
 %% Implied Volatility - Newton-Raphson Method (see Haug, p.453)
 
