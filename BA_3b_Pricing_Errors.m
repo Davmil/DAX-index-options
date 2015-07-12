@@ -65,12 +65,38 @@ prcerrG_p = (repmat(mdlprcG_p.Price, 1, 2) - table2array(mdlprcG_p(:, 4:end)))./
 % Relative Pricing Error (RPE) ============================================
 % Call 
 Xa=find(strcmp(mydatc.Date,'2006-07-04'));
-prcerrI_c = (mdlprcG_c.Price(Xa(1):end) - mdlprcG_c.MeanImplVola(Xa(1):end))./mdlprcG_c.MeanImplVola(Xa(1):end);
-% Put
+prcerrI_c = (mdlprcI_c.Price(Xa(1):end) - mdlprcI_c.MeanImplVola(Xa(1):end))./mdlprcI_c.MeanImplVola(Xa(1):end);
+% Pu
 Xb=find(strcmp(mydatp.Date,'2006-07-04'));  
-prcerrI_p = (mdlprcG_p.Price(Xa(1):end) - mdlprcG_p.MeanImplVola(Xa(1):end))./mdlprcG_p.MeanImplVola(Xa(1):end);
+prcerrI_p = (mdlprcI_p.Price(Xa(1):end) - mdlprcI_p.MeanImplVola(Xa(1):end))./mdlprcI_p.MeanImplVola(Xa(1):end);
 
 nanmean(prcerrI_c(:,1))
 
 nanmean(prcerrI_p(:,1))
 %% Pricing error seperated into Strike-levels/Time-to-Maturity/Moneyness/Year
+
+% Year 2006
+nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2006-07-04')):find(mdlprcI_c.Date==datenum('2006-12-29'),1)) )
+nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2006-07-04')):find(mdlprcI_p.Date==datenum('2006-12-29'),1)) )
+% Year 2007
+nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2007-01-02')):find(mdlprcI_c.Date==datenum('2007-12-28'),1)) )
+nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2007-01-02')):find(mdlprcI_p.Date==datenum('2007-12-28'),1)) )
+% Year 2008
+nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2008-01-02')):find(mdlprcI_c.Date==datenum('2008-12-30'),1)) )
+nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2008-01-02')):find(mdlprcI_p.Date==datenum('2008-12-30'),1)) )
+% Year 2009
+nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2009-01-02')):find(mdlprcI_c.Date==datenum('2009-12-30'),1)) )
+nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2009-01-02')):find(mdlprcI_p.Date==datenum('2009-12-30'),1)) )
+% Year 2010
+nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2010-01-04')):find(mdlprcI_c.Date==datenum('2010-12-30'),1)) )
+nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2010-01-04')):find(mdlprcI_p.Date==datenum('2010-12-30'),1)) )
+% Year 2011
+nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2011-01-03')):find(mdlprcI_c.Date==datenum('2011-12-30'),1)) )
+nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2011-01-03')):find(mdlprcI_p.Date==datenum('2011-12-30'),1)) )
+% Year 2012
+nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2012-01-02')):find(mdlprcI_c.Date==datenum('2012-12-28'),1)) )
+nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2012-01-02')):find(mdlprcI_p.Date==datenum('2012-12-28'),1)) )
+% Year 2013
+nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2013-01-02')):find(mdlprcI_c.Date==datenum('2013-12-30'),1)) )
+nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2013-01-02')):find(mdlprcI_p.Date==datenum('2013-12-30'),1)) )
+
