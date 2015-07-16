@@ -43,54 +43,54 @@ daxVals=standardizeMissing(daxVals,{0},'DataVariables',{'vol20','vol40','vol60',
 
 %% GARCH(1,1) Volatility Model
 
-Mdl = garch('GARCHLags',1,'ARCHLags',1);
-
-% Schaetzung: Matrix mit Schaetzer erstellen:
-orig=256;
-Tmax=length(daxlogreturns);
-pars = nan(Tmax-orig,4); % (for EXTENDING WINDOW)
-garch_vol = nan(Tmax,2);
-
-% Komplette Renditezeitreihe
-    EstMdl = estimate( Mdl,daxlogreturns - mean(daxlogreturns), 'Display','off' );
-    v = infer(EstMdl,daxlogreturns); % = long-run average variance per day (nach Hull: V_L)
-    v = sqrt(v);                     % Volatility per day (Hull p.626)
-    garch_vol(:,1) =  sqrt(255)*v;   % Annualising volas
-    
-
-% Mit Fenstern
-tic
-k = 1;
-
-for i = orig:(Tmax)
-    % Schaetzung der Parameter + Vola (EXTENDING WINDOW)
-    EstMdl = estimate( Mdl,daxlogreturns(1:i) - mean(daxlogreturns(1:i)), 'Display','off' );
-    v = infer(EstMdl,daxlogreturns(1:i));
-    v = sqrt(v(end)); % Volatility per day (Hull p.626)
-    pars(k,1) = EstMdl.Constant;
-    pars(k,2) = cell2mat(EstMdl.GARCH);
-    pars(k,3) = cell2mat(EstMdl.ARCH);
-    garch_vol(i,2) =  sqrt(255)*v; % Annualised Vola
- 
-    k = k + 1;
-end
-save pars pars;
-
-
-
-% Plote die Parameter alpha, beta und gamma:
-subplot(3,1,1);plot(pars(:,2));title('Alpha Ext. wind.')
-subplot(3,1,2);plot(pars(:,3));title('Beta Ext. wind.')
-subplot(3,1,3);plot(pars(:,1));title('Constant Ext. wind.')
-
-
-
-garch_vol = [ daxVals.Date(2:end) table(garch_vol(:,1), garch_vol(:,2)) ];
-garch_vol.Properties.VariableNames = {'Date' 'TimeSer' 'Ext'};
-
-save garch_vol garch_vol;
-toc % Elapsed time is 128.087547 seconds.
-% load pars; load garch_vol;
+% Mdl = garch('GARCHLags',1,'ARCHLags',1);
+% 
+% % Schaetzung: Matrix mit Schaetzer erstellen:
+% orig=256;
+% Tmax=length(daxlogreturns);
+% pars = nan(Tmax-orig,4); % (for EXTENDING WINDOW)
+% garch_vol = nan(Tmax,2);
+% 
+% % Komplette Renditezeitreihe
+%     EstMdl = estimate( Mdl,daxlogreturns - mean(daxlogreturns), 'Display','off' );
+%     v = infer(EstMdl,daxlogreturns); % = long-run average variance per day (nach Hull: V_L)
+%     v = sqrt(v);                     % Volatility per day (Hull p.626)
+%     garch_vol(:,1) =  sqrt(255)*v;   % Annualising volas
+%     
+% 
+% % Mit Fenstern
+% tic
+% k = 1;
+% 
+% for i = orig:(Tmax)
+%     % Schaetzung der Parameter + Vola (EXTENDING WINDOW)
+%     EstMdl = estimate( Mdl,daxlogreturns(1:i) - mean(daxlogreturns(1:i)), 'Display','off' );
+%     v = infer(EstMdl,daxlogreturns(1:i));
+%     v = sqrt(v(end)); % Volatility per day (Hull p.626)
+%     pars(k,1) = EstMdl.Constant;
+%     pars(k,2) = cell2mat(EstMdl.GARCH);
+%     pars(k,3) = cell2mat(EstMdl.ARCH);
+%     garch_vol(i,2) =  sqrt(255)*v; % Annualised Vola
+%  
+%     k = k + 1;
+% end
+% save pars pars;
+% 
+% 
+% 
+% % Plote die Parameter alpha, beta und gamma:
+% subplot(3,1,1);plot(pars(:,2));title('Alpha Ext. wind.')
+% subplot(3,1,2);plot(pars(:,3));title('Beta Ext. wind.')
+% subplot(3,1,3);plot(pars(:,1));title('Constant Ext. wind.')
+% 
+% 
+% 
+% garch_vol = [ daxVals.Date(2:end) table(garch_vol(:,1), garch_vol(:,2)) ];
+% garch_vol.Properties.VariableNames = {'Date' 'TimeSer' 'Ext'};
+% 
+% save garch_vol garch_vol;
+% toc % Elapsed time is 128.087547 seconds.
+load pars; load garch_vol;
 
 %% Implied Volatility - Newton-Raphson Method (see Haug, p.453)
 
