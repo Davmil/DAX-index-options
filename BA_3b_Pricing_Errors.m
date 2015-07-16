@@ -2,101 +2,417 @@
 %%%%%%%%%        Bewertungsabweichungen         %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-load mdlprc_c; load mdlprc_p;
+cd C:\Users\David\Documents\Bachelorarbeit\main;
+% cd C:\Users\Pomian\Documents\Bachelorarbeit\main;
+run('BA_3_Model_Prices.m')
 
+% load mdlprc_c; load mdlprc_p;
+
+%% Preperation
+% Years
+X=datenum(mydatc.Date);Y=datenum(mydatp.Date);
+XYstart=[datenum('2006-07-04');datenum('2007-01-02');datenum('2008-01-02');...
+         datenum('2009-01-02');datenum('2010-01-04');datenum('2011-01-03');...
+         datenum('2012-01-02');datenum('2013-01-02')];
+XYend=[datenum('2006-12-29');datenum('2007-12-28');datenum('2008-12-30');...
+       datenum('2009-12-30');datenum('2010-12-30');datenum('2011-12-30');...
+       datenum('2012-12-28');datenum('2013-12-30')];
+
+% Maturity
+XYstartM=[0;0.2;0.4;0.6;0.8]; XYendM=[0.2;0.4;0.6;0.8;1];
+% Moneyness
+XYstartMn=[0.80;0.88;0.96;1.04;1.12]; XYendMn=[0.88;0.96;1.04;1.12;1.20];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                        Historical Volatility 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Relative Pricing Error (RPE) ============================================
+%% Relative Pricing Error (RPE) ============================================
+% ALL Calls 
+rpe_c = (repmat(mdlprc_c.Price, 1, 7) - table2array(mdlprc_c(:, 4:end)))./table2array(mdlprc_c(:, 4:end));
+[nanmean(rpe_c(:,1)), nanmean(rpe_c(:,2)), nanmean(rpe_c(:,3)), ...
+ nanmean(rpe_c(:,4)), nanmean(rpe_c(:,5)), nanmean(rpe_c(:,6)), ...
+ nanmean(rpe_c(:,7))]
+% ALL Puts
+rpe_p = (repmat(mdlprc_p.Price, 1, 7) - table2array(mdlprc_p(:, 4:end)))./table2array(mdlprc_p(:, 4:end));
+[nanmean(rpe_p(:,1)), nanmean(rpe_p(:,2)), nanmean(rpe_p(:,3)), ...
+ nanmean(rpe_p(:,4)), nanmean(rpe_p(:,5)), nanmean(rpe_p(:,6)), ...
+ nanmean(rpe_p(:,7))]
+
+% Seperated into Time-to-Maturity
+for i = 1:length(XYstartM)
+    ttm_errc(i,:) = nanmean(rpe_c(mydatc.Time_to_Maturity>=XYstartM(i) & mydatc.Time_to_Maturity<XYendM(i),1:7));
+    ttm_errp(i,:) = nanmean(rpe_p(mydatp.Time_to_Maturity>=XYstartM(i) & mydatp.Time_to_Maturity<XYendM(i),1:7));
+end 
+
+% Seperated into Moneyness
+for i = 1:length(XYstartMn)
+    mny_errc(i,:) = nanmean(rpe_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i),1:7));
+    mny_errp(i,:) = nanmean(rpe_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i),1:7));
+end 
+
+% Seperated into Moneyness AND Time to Maturity
+volest=[0;6;12;18;24;30;36];
+for i = 1:length(XYstartMn)            %(moneyness)
+    for k = 1:length(volest)            % Vol estimates
+        for j = 1:length(XYstartM)     %(maturity)
+            mnymat_errc(i,j+volest(k)) = nanmean(rpe_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
+                                 mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j),k));
+            mnymat_errp(i,j+volest(k)) = nanmean(rpe_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
+                                 mydatp.mnyness>=XYstartMn(j) & mydatp.mnyness<XYendMn(j),k));
+        end     
+    end 
+end
+
+% Seperated into Years
+for i = 1:length(XYstart)
+    year_errc(i,:) = nanmean(rpe_c( find(X==XYstart(i)):find(X==XYend(i),1,'last'),1:7) );
+    year_errp(i,:) = nanmean(rpe_p( find(Y==XYstart(i)):find(Y==XYend(i),1,'last'),1:7) );
+end 
+
+
+%% Average Relative Pricing Error (ARPE) ===================================
 % Call 
-prcerr_c = (repmat(mdlprc_c.Price, 1, 7) - table2array(mdlprc_c(:, 4:end)))./table2array(mdlprc_c(:, 4:end));
+arpe_c = (abs(repmat(mdlprc_c.Price, 1, 7) - table2array(mdlprc_c(:, 4:end)))./table2array(mdlprc_c(:, 4:end)));
+[nanmean(arpe_c(:,1)), nanmean(arpe_c(:,2)), nanmean(arpe_c(:,3)), ...
+ nanmean(arpe_c(:,4)), nanmean(arpe_c(:,5)), nanmean(arpe_c(:,6)), ...
+ nanmean(arpe_c(:,7))]
 % Put
-prcerr_p = (repmat(mdlprc_p.Price, 1, 7) - table2array(mdlprc_p(:, 4:end)))./table2array(mdlprc_p(:, 4:end));
+arpe_p = (abs(repmat(mdlprc_p.Price, 1, 7) - table2array(mdlprc_p(:, 4:end)))./table2array(mdlprc_p(:, 4:end)));
+[nanmean(arpe_p(:,1)), nanmean(arpe_p(:,2)), nanmean(arpe_p(:,3)), ...
+ nanmean(arpe_p(:,4)), nanmean(arpe_p(:,5)), nanmean(arpe_p(:,6)), ...
+ nanmean(arpe_p(:,7))]
 
-[nanmean(prcerr_c(:,1)), nanmean(prcerr_c(:,2)), nanmean(prcerr_c(:,3)), ...
- nanmean(prcerr_c(:,4)), nanmean(prcerr_c(:,5)), nanmean(prcerr_c(:,6)), ...
- nanmean(prcerr_c(:,7))]
+% Seperated into Time-to-Maturity
+for i = 1:length(XYstartM)
+    ttm_errc(i+6,:) = nanmean(arpe_c(mydatc.Time_to_Maturity>=XYstartM(i) & mydatc.Time_to_Maturity<XYendM(i),1:7));
+    ttm_errp(i+6,:) = nanmean(arpe_p(mydatp.Time_to_Maturity>=XYstartM(i) & mydatp.Time_to_Maturity<XYendM(i),1:7));
+end 
 
-[nanmean(prcerr_p(:,1)), nanmean(prcerr_p(:,2)), nanmean(prcerr_p(:,3)), ...
- nanmean(prcerr_p(:,4)), nanmean(prcerr_p(:,5)), nanmean(prcerr_p(:,6)), ...
- nanmean(prcerr_p(:,7))]
-% % Test welche Optionen eine Abweichung von mehr als 100% haben: 
-% x = [table(prcerr_c(:,1), prcerr_c(:,2), prcerr_c(:,3), ...
-%            prcerr_c(:,4), prcerr_c(:,5), prcerr_c(:,6), ...
-%            prcerr_c(:,7)),mydatc(:,[3 4 9 13 11])];
-%        
-% y1 = x(x.Var1>1,:); y2 = x(x.Var2>1,:); y3 = x(x.Var1>3,:);
-% y4 = x(x.Var4>1,:); y5 = x(x.Var1>5,:); y6 = x(x.Var6>1,:); y7 = x(x.Var1>7,:);
+% Seperated into Moneyness
+for i = 1:length(XYstartMn)
+    mny_errc(i+6,:) = nanmean(arpe_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i),1:7));
+    mny_errp(i+6,:) = nanmean(arpe_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i),1:7));
+end 
+
+% Seperated into Moneyness AND Time to Maturity
+for i = 1:length(XYstartMn)            %(moneyness)
+    for k = 1:length(volest)            % Vol estimates
+        for j = 1:length(XYstartM)     %(maturity)
+            mnymat_errc(i+6,j+volest(k)) = nanmean(arpe_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
+                                 mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j),k));
+            mnymat_errp(i+6,j+volest(k)) = nanmean(arpe_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
+                                 mydatp.mnyness>=XYstartMn(j) & mydatp.mnyness<XYendMn(j),k));
+        end     
+    end 
+end
+
+% Seperated into Years
+for i = 10:17
+    year_errc(i,:) = nanmean(arpe_c( find(X==XYstart(i-9)):find(X==XYend(i-9),1,'last'),1:7) );
+    year_errp(i,:) = nanmean(arpe_p( find(Y==XYstart(i-9)):find(Y==XYend(i-9),1,'last'),1:7) );
+end 
 
 
-% Root Mean Squared Error (RMSE) ==========================================
+%% Root Mean Squared Error (RMSE) ==========================================
 
+% Call
+rmse_c = sqrt(nanmean(repmat(mdlprc_c.Price, 1, 7) - table2array(mdlprc_c(:, 4:end))).^2);
+% Put
+rmse_p = sqrt(nanmean(repmat(mdlprc_p.Price, 1, 7) - table2array(mdlprc_p(:, 4:end))).^2);
 
+% Seperated into Time-to-Maturity
+for i = 1:length(XYstartM)
+    ttm_errc(i+12,:)= sqrt(nanmean(repmat(mdlprc_c.Price(mydatc.Time_to_Maturity>=XYstartM(i) & mydatc.Time_to_Maturity<XYendM(i)),...
+    1, 7) - table2array(mdlprc_c(mydatc.Time_to_Maturity>=XYstartM(i) & mydatc.Time_to_Maturity<XYendM(i), 4:end))).^2);
+    ttm_errp(i+12,:)= sqrt(nanmean(repmat(mdlprc_p.Price(mydatp.Time_to_Maturity>=XYstartM(i) & mydatp.Time_to_Maturity<XYendM(i)),...
+    1, 7) - table2array(mdlprc_p(mydatp.Time_to_Maturity>=XYstartM(i) & mydatp.Time_to_Maturity<XYendM(i), 4:end))).^2);
+end 
 
+% Seperated into Moneyness
+for i = 1:length(XYstartMn)
+    mny_errc(i+12,:)= sqrt(nanmean(repmat(mdlprc_c.Price(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i)),...
+    1, 7) - table2array(mdlprc_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i), 4:end))).^2);
+    mny_errp(i+12,:)= sqrt(nanmean(repmat(mdlprc_p.Price(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i)),...
+    1, 7) - table2array(mdlprc_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i), 4:end))).^2);
+end 
 
-% Average Relative Pricing Error (ARPE) ===================================
+% Seperated into Moneyness AND Time to Maturity
+for i = 1:length(XYstartMn)            %(moneyness)
+    for k = 1:length(volest)            % Vol estimates
+        for j = 1:length(XYstartM)     %(maturity)
+            mnymat_errc(i+12,j+volest(k)) = sqrt(nanmean(mdlprc_c.Price(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
+                                 mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j)) ...
+                        - table2array(mdlprc_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
+                                 mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j), k+3))).^2);
+            mnymat_errp(i+12,j+volest(k)) = sqrt(nanmean(mdlprc_p.Price(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
+                                 mydatp.Time_to_Maturity>=XYstartM(j) & mydatp.Time_to_Maturity<XYendM(j)) ...
+                        - table2array(mdlprc_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
+                                 mydatp.Time_to_Maturity>=XYstartM(j) & mydatp.Time_to_Maturity<XYendM(j), k+3))).^2);                 
+        end     
+    end 
+end
 
-
-%% Pricing error seperated into Strike-levels/Time-to-Maturity/Moneyness/Year
-
-
+% Seperated into Years
+for i = 19:26
+    year_errc(i,:) = sqrt(nanmean(repmat(mdlprc_c.Price( find(X==XYstart(i-18)):find(X==XYend(i-18),1,'last')), 1, 7) - ...
+                     table2array(mdlprc_c(find(X==XYstart(i-18)):find(X==XYend(i-18),1,'last'), 4:end))).^2);
+                 
+    year_errp(i,:) = sqrt(nanmean(repmat(mdlprc_p.Price( find(Y==XYstart(i-18)):find(Y==XYend(i-18),1,'last')), 1, 7) - ...
+                     table2array(mdlprc_p(find(Y==XYstart(i-18)):find(Y==XYend(i-18),1,'last'), 4:end))).^2);
+end 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                              GARCH(1,1) Volatility Model
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Relative Pricing Error (RPE) ============================================
-% Call 
-prcerrG_c = (repmat(mdlprcG_c.Price, 1, 2) - table2array(mdlprcG_c(:, 4:end)))./table2array(mdlprcG_c(:, 4:end));
+
+%% Relative Pricing Error (RPE) ============================================
+% ALL Calls
+rpeG_c = (repmat(mdlprcG_c.Price, 1, 2) - table2array(mdlprcG_c(:, 4:end)))./table2array(mdlprcG_c(:, 4:end));
+[nanmean(rpeG_c(:,1)), nanmean(rpeG_c(:,2))]
+% ALL Puts
+rpeG_p = (repmat(mdlprcG_p.Price, 1, 2) - table2array(mdlprcG_p(:, 4:end)))./table2array(mdlprcG_p(:, 4:end));
+[nanmean(rpeG_p(:,1)), nanmean(rpeG_p(:,2))]
+
+% Seperated into Time-to-Maturity
+for i = 1:length(XYstartM)
+    ttm_errc(i,9:10) = nanmean(rpeG_c(mydatc.Time_to_Maturity>=XYstartM(i) & mydatc.Time_to_Maturity<XYendM(i),1:2));
+    ttm_errp(i,9:10) = nanmean(rpeG_p(mydatp.Time_to_Maturity>=XYstartM(i) & mydatp.Time_to_Maturity<XYendM(i),1:2));
+end 
+
+% Seperated into Moneyness
+for i = 1:length(XYstartMn)
+    mny_errc(i,9:10) = nanmean(rpeG_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i),1:2));
+    mny_errp(i,9:10) = nanmean(rpeG_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i),1:2));
+end 
+
+% Seperated into Moneyness AND Time to Maturity
+volest=[42;48];
+for i = 1:length(XYstartMn)            %(moneyness)
+    for k = 1:length(volest)            % Vol estimates
+        for j = 1:length(XYstartM)     %(maturity)
+            mnymat_errc(i,j+volest(k)) = nanmean(rpeG_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
+                                 mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j),k));
+            mnymat_errp(i,j+volest(k)) = nanmean(rpeG_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
+                                 mydatp.mnyness>=XYstartMn(j) & mydatp.mnyness<XYendMn(j),k));
+        end     
+    end 
+end
+
+% Seperated into Years
+for i = 1:length(XYstart)
+    year_errc(i,9:10) = nanmean(rpeG_c( find(X==XYstart(i)):find(X==XYend(i),1,'last'),1:2) );
+    year_errp(i,9:10) = nanmean(rpeG_p( find(Y==XYstart(i)):find(Y==XYend(i),1,'last'),1:2) );
+end 
+
+%% Average Relative Pricing Error (ARPE) ===================================
+% ALL Calls
+arpeG_c = (abs(repmat(mdlprcG_c.Price, 1, 2) - table2array(mdlprcG_c(:, 4:end)))./table2array(mdlprcG_c(:, 4:end)));
+[nanmean(arpeG_c(:,1)), nanmean(arpeG_c(:,2))]
+% ALL Puts
+arpeG_p = abs(repmat(mdlprcG_p.Price, 1, 2) - table2array(mdlprcG_p(:, 4:end)))./table2array(mdlprcG_p(:, 4:end));
+[nanmean(arpeG_p(:,1)), nanmean(arpeG_p(:,2))]
+
+% Seperated into Time-to-Maturity
+for i = 1:length(XYstartM)
+    ttm_errc(i+6,9:10) = nanmean(arpeG_c(mydatc.Time_to_Maturity>=XYstartM(i) & mydatc.Time_to_Maturity<XYendM(i),1:2));
+    ttm_errp(i+6,9:10) = nanmean(arpeG_p(mydatp.Time_to_Maturity>=XYstartM(i) & mydatp.Time_to_Maturity<XYendM(i),1:2));
+end 
+
+% Seperated into Moneyness
+for i = 1:length(XYstartMn)
+    mny_errc(i+6,9:10) = nanmean(arpeG_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i),1:2));
+    mny_errp(i+6,9:10) = nanmean(arpeG_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i),1:2));
+end 
+
+% Seperated into Moneyness AND Time to Maturity
+volest=[42;48];
+for i = 1:length(XYstartMn)            %(moneyness)
+    for k = 1:length(volest)            % Vol estimates
+        for j = 1:length(XYstartM)     %(maturity)
+            mnymat_errc(i+6,j+volest(k)) = nanmean(arpeG_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
+                                 mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j),k));
+            mnymat_errp(i+6,j+volest(k)) = nanmean(arpeG_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
+                                 mydatp.mnyness>=XYstartMn(j) & mydatp.mnyness<XYendMn(j),k));
+        end     
+    end 
+end
+
+% Seperated into Years
+for i = 1:length(XYstart)
+    year_errc(i+9,9:10) = nanmean(arpeG_c( find(X==XYstart(i)):find(X==XYend(i),1,'last'),1:2) );
+    year_errp(i+9,9:10) = nanmean(arpeG_p( find(Y==XYstart(i)):find(Y==XYend(i),1,'last'),1:2) );
+end 
+
+%% Root Mean Squared Error (RMSE) ==========================================
+% Call
+rmseG_c = sqrt(nanmean(repmat(mdlprcG_c.Price, 1, 2) - table2array(mdlprcG_c(:, 4:end))).^2);
 % Put
-prcerrG_p = (repmat(mdlprcG_p.Price, 1, 2) - table2array(mdlprcG_p(:, 4:end)))./table2array(mdlprcG_p(:, 4:end));
+rmseG_p = sqrt(nanmean(repmat(mdlprcG_p.Price, 1, 2) - table2array(mdlprcG_p(:, 4:end))).^2);
 
-[nanmean(prcerrG_c(:,1)), nanmean(prcerrG_c(:,2))]
+% Seperated into Time-to-Maturity
+for i = 1:length(XYstartM)
+    ttm_errc(i+12,9:10)= sqrt(nanmean(repmat(mdlprcG_c.Price(mydatc.Time_to_Maturity>=XYstartM(i) & mydatc.Time_to_Maturity<XYendM(i)),...
+    1, 2) - table2array(mdlprcG_c(mydatc.Time_to_Maturity>=XYstartM(i) & mydatc.Time_to_Maturity<XYendM(i), 4:end))).^2);
+    ttm_errp(i+12,9:10)= sqrt(nanmean(repmat(mdlprcG_p.Price(mydatp.Time_to_Maturity>=XYstartM(i) & mydatp.Time_to_Maturity<XYendM(i)),...
+    1, 2) - table2array(mdlprcG_p(mydatp.Time_to_Maturity>=XYstartM(i) & mydatp.Time_to_Maturity<XYendM(i), 4:end))).^2);
+end 
 
-[nanmean(prcerrG_p(:,1)), nanmean(prcerrG_p(:,2))]
+% Seperated into Moneyness
+for i = 1:length(XYstartMn)
+    mny_errc(i+12,9:10)= sqrt(nanmean(repmat(mdlprcG_c.Price(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i)),...
+    1, 2) - table2array(mdlprcG_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i), 4:end))).^2);
+    mny_errp(i+12,9:10)= sqrt(nanmean(repmat(mdlprcG_p.Price(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i)),...
+    1, 2) - table2array(mdlprcG_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i), 4:end))).^2);
+end 
 
-%% Pricing error seperated into Strike-levels/Time-to-Maturity/Moneyness/Year
+% Seperated into Moneyness AND Time to Maturity
+volest=[42;48];
+for i = 1:length(XYstartMn)            %(moneyness)
+    for k = 1:length(volest)            % Vol estimates
+        for j = 1:length(XYstartM)     %(maturity)
+            mnymat_errc(i+12,j+volest(k)) = sqrt(nanmean(mdlprcG_c.Price(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
+                                 mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j)) ...
+                        - table2array(mdlprcG_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
+                                 mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j), k+3))).^2);
+            mnymat_errp(i+12,j+volest(k)) = sqrt(nanmean(mdlprcG_p.Price(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
+                                 mydatp.Time_to_Maturity>=XYstartM(j) & mydatp.Time_to_Maturity<XYendM(j)) ...
+                        - table2array(mdlprcG_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
+                                 mydatp.Time_to_Maturity>=XYstartM(j) & mydatp.Time_to_Maturity<XYendM(j), k+3))).^2);                 
+        end     
+    end 
+end
+
+% Seperated into Years
+for i = 19:26
+    year_errc(i,9:10) = sqrt(nanmean(repmat(mdlprcG_c.Price( find(X==XYstart(i-18)):find(X==XYend(i-18),1,'last')), 1, 2) - ...
+                     table2array(mdlprcG_c(find(X==XYstart(i-18)):find(X==XYend(i-18),1,'last'), 4:end))).^2);
+                 
+    year_errp(i,9:10) = sqrt(nanmean(repmat(mdlprcG_p.Price( find(Y==XYstart(i-18)):find(Y==XYend(i-18),1,'last')), 1, 2) - ...
+                     table2array(mdlprcG_p(find(Y==XYstart(i-18)):find(Y==XYend(i-18),1,'last'), 4:end))).^2);
+end  
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                        Implied Volatility 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Relative Pricing Error (RPE) ============================================
+
+%% Relative Pricing Error (RPE) ===========================================
 % Call 
-Xa=find(strcmp(mydatc.Date,'2006-07-04'));
-prcerrI_c = (mdlprcI_c.Price(Xa(1):end) - mdlprcI_c.MeanImplVola(Xa(1):end))./mdlprcI_c.MeanImplVola(Xa(1):end);
-% Pu
-Xb=find(strcmp(mydatp.Date,'2006-07-04'));  
-prcerrI_p = (mdlprcI_p.Price(Xa(1):end) - mdlprcI_p.MeanImplVola(Xa(1):end))./mdlprcI_p.MeanImplVola(Xa(1):end);
+rpeI_c = (mdlprcI_c.Price - mdlprcI_c.MeanImplVola)./mdlprcI_c.MeanImplVola;
+nanmean(rpeI_c(:,1))
+% Put
+rpeI_p = (mdlprcI_p.Price - mdlprcI_p.MeanImplVola)./mdlprcI_p.MeanImplVola;
+nanmean(rpeI_p(:,1))
 
-nanmean(prcerrI_c(:,1))
+% Seperated into Time-to-Maturity
+for i = 1:length(XYstartM)
+    ttm_errc(i,12) = nanmean(rpeI_c(mydatc.Time_to_Maturity>=XYstartM(i) & mydatc.Time_to_Maturity<XYendM(i),1));
+    ttm_errp(i,12:13) = nanmean(rpeI_p(mydatp.Time_to_Maturity>=XYstartM(i) & mydatp.Time_to_Maturity<XYendM(i),1));
+end 
 
-nanmean(prcerrI_p(:,1))
-%% Pricing error seperated into Strike-levels/Time-to-Maturity/Moneyness/Year
+% Seperated into Moneyness
+for i = 1:length(XYstartMn)
+    mny_errc(i,12) = nanmean(rpeI_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i),1));
+    mny_errp(i,12) = nanmean(rpeI_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i),1));
+end 
 
-% Year 2006
-nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2006-07-04')):find(mdlprcI_c.Date==datenum('2006-12-29'),1)) )
-nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2006-07-04')):find(mdlprcI_p.Date==datenum('2006-12-29'),1)) )
-% Year 2007
-nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2007-01-02')):find(mdlprcI_c.Date==datenum('2007-12-28'),1)) )
-nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2007-01-02')):find(mdlprcI_p.Date==datenum('2007-12-28'),1)) )
-% Year 2008
-nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2008-01-02')):find(mdlprcI_c.Date==datenum('2008-12-30'),1)) )
-nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2008-01-02')):find(mdlprcI_p.Date==datenum('2008-12-30'),1)) )
-% Year 2009
-nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2009-01-02')):find(mdlprcI_c.Date==datenum('2009-12-30'),1)) )
-nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2009-01-02')):find(mdlprcI_p.Date==datenum('2009-12-30'),1)) )
-% Year 2010
-nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2010-01-04')):find(mdlprcI_c.Date==datenum('2010-12-30'),1)) )
-nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2010-01-04')):find(mdlprcI_p.Date==datenum('2010-12-30'),1)) )
-% Year 2011
-nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2011-01-03')):find(mdlprcI_c.Date==datenum('2011-12-30'),1)) )
-nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2011-01-03')):find(mdlprcI_p.Date==datenum('2011-12-30'),1)) )
-% Year 2012
-nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2012-01-02')):find(mdlprcI_c.Date==datenum('2012-12-28'),1)) )
-nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2012-01-02')):find(mdlprcI_p.Date==datenum('2012-12-28'),1)) )
-% Year 2013
-nanmean(prcerrI_c( find(mdlprcI_c.Date==datenum('2013-01-02')):find(mdlprcI_c.Date==datenum('2013-12-30'),1)) )
-nanmean(prcerrI_p( find(mdlprcI_p.Date==datenum('2013-01-02')):find(mdlprcI_p.Date==datenum('2013-12-30'),1)) )
+% Seperated into Moneyness AND Time to Maturity
+for i = 1:length(XYstartMn)            %(moneyness)
+        for j = 1:length(XYstartM)     %(maturity)
+            mnymat_errc(i,j+54) = nanmean(rpeI_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
+                                 mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j),1));
+            mnymat_errp(i,j+54) = nanmean(rpeI_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
+                                 mydatp.mnyness>=XYstartMn(j) & mydatp.mnyness<XYendMn(j),1));
+        end     
+end
 
+% Seperated into Years
+for i = 1:length(XYstart)
+    year_errc(i,12) = nanmean(rpeI_c( find(X==XYstart(i)):find(X==XYend(i),1,'last'),1) );
+    year_errp(i,12) = nanmean(rpeI_p( find(Y==XYstart(i)):find(Y==XYend(i),1,'last'),1) );
+end 
+
+%% Average Relative Pricing Error (ARPE) ===================================
+% ALL Calls
+arpeI_c = (abs(repmat(mdlprcI_c.Price, 1, 1) - table2array(mdlprcI_c(:,2)))./table2array(mdlprcI_c(:,2)));
+nanmean(arpeI_c(:,1))
+% ALL Puts
+arpeI_p = abs(repmat(mdlprcI_p.Price, 1, 1) - table2array(mdlprcI_p(:,2)))./table2array(mdlprcI_p(:,2));
+nanmean(arpeI_p(:,1))
+
+% Seperated into Time-to-Maturity
+for i = 1:length(XYstartM)
+    ttm_errc(i+6,12) = nanmean(arpeI_c(mydatc.Time_to_Maturity>=XYstartM(i) & mydatc.Time_to_Maturity<XYendM(i),1));
+    ttm_errp(i+6,12) = nanmean(arpeI_p(mydatp.Time_to_Maturity>=XYstartM(i) & mydatp.Time_to_Maturity<XYendM(i),1));
+end 
+
+% Seperated into Moneyness
+for i = 1:length(XYstartMn)
+    mny_errc(i+6,12) = nanmean(arpeI_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i),1));
+    mny_errp(i+6,12) = nanmean(arpeI_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i),1));
+end 
+
+% Seperated into Moneyness AND Time to Maturity
+
+for i = 1:length(XYstartMn)            %(moneyness)
+        for j = 1:length(XYstartM)     %(maturity)
+            mnymat_errc(i+6,j+54) = nanmean(arpeI_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
+                                 mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j),1));
+            mnymat_errp(i+6,j+54) = nanmean(arpeI_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
+                                 mydatp.mnyness>=XYstartMn(j) & mydatp.mnyness<XYendMn(j),1));
+        end     
+end
+
+% Seperated into Years
+for i = 1:length(XYstart)
+    year_errc(i+9,12) = nanmean(arpeI_c( find(X==XYstart(i)):find(X==XYend(i),1,'last'),1) );
+    year_errp(i+9,12) = nanmean(arpeI_p( find(Y==XYstart(i)):find(Y==XYend(i),1,'last'),1) );
+end 
+
+%% Root Mean Squared Error (RMSE) ==========================================
+% Call
+rmseI_c = sqrt(nanmean(repmat(mdlprcI_c.Price, 1, 1) - table2array(mdlprcI_c(:,2))).^2);
+% Put
+rmseI_p = sqrt(nanmean(repmat(mdlprcI_p.Price, 1, 1) - table2array(mdlprcI_p(:,2))).^2);
+
+% Seperated into Time-to-Maturity
+for i = 1:length(XYstartM)
+    ttm_errc(i+12,12)= sqrt(nanmean(repmat(mdlprcI_c.Price(mydatc.Time_to_Maturity>=XYstartM(i) & mydatc.Time_to_Maturity<XYendM(i)),...
+    1, 1) - table2array(mdlprcI_c(mydatc.Time_to_Maturity>=XYstartM(i) & mydatc.Time_to_Maturity<XYendM(i), 2))).^2);
+    ttm_errp(i+12,12)= sqrt(nanmean(repmat(mdlprcI_p.Price(mydatp.Time_to_Maturity>=XYstartM(i) & mydatp.Time_to_Maturity<XYendM(i)),...
+    1, 1) - table2array(mdlprcI_p(mydatp.Time_to_Maturity>=XYstartM(i) & mydatp.Time_to_Maturity<XYendM(i), 2))).^2);
+end 
+
+% Seperated into Moneyness
+for i = 1:length(XYstartMn)
+    mny_errc(i+12,12)= sqrt(nanmean(repmat(mdlprcI_c.Price(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i)),...
+    1, 1) - table2array(mdlprcI_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i), 2))).^2);
+    mny_errp(i+12,12)= sqrt(nanmean(repmat(mdlprcI_p.Price(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i)),...
+    1, 1) - table2array(mdlprcI_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i), 2))).^2);
+end 
+
+% Seperated into Moneyness AND Time to Maturity
+
+for i = 1:length(XYstartMn)            %(moneyness)
+        for j = 1:length(XYstartM)     %(maturity)
+            mnymat_errc(i+12,j+54) = sqrt(nanmean(mdlprcI_c.Price(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
+                                 mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j)) ...
+                        - table2array(mdlprcI_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
+                                 mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j), 1+1))).^2);
+            mnymat_errp(i+12,j+54) = sqrt(nanmean(mdlprcI_p.Price(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
+                                 mydatp.Time_to_Maturity>=XYstartM(j) & mydatp.Time_to_Maturity<XYendM(j)) ...
+                        - table2array(mdlprcI_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
+                                 mydatp.Time_to_Maturity>=XYstartM(j) & mydatp.Time_to_Maturity<XYendM(j), 1+1))).^2);                 
+        end     
+end
+
+% Seperated into Years
+for i = 19:26
+    year_errc(i,12) = sqrt(nanmean(repmat(mdlprcI_c.Price( find(X==XYstart(i-18)):find(X==XYend(i-18),1,'last')), 1, 1) - ...
+                     table2array(mdlprcI_c(find(X==XYstart(i-18)):find(X==XYend(i-18),1,'last'), 2))).^2);
+                 
+    year_errp(i,12) = sqrt(nanmean(repmat(mdlprcI_p.Price( find(Y==XYstart(i-18)):find(Y==XYend(i-18),1,'last')), 1, 1) - ...
+                     table2array(mdlprcI_p(find(Y==XYstart(i-18)):find(Y==XYend(i-18),1,'last'), 2))).^2);
+end  
