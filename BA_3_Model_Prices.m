@@ -110,8 +110,12 @@ mdlprcG_c.TimeSer = bs_price(mydatc.DAX(Xa(1):end),mydatc.Strike(Xa(1):end), ...
 [C,mdlprcG_p.TimeSer] = bs_price(mydatp.DAX(Xb(1):end),mydatp.Strike(Xb(1):end), ...
                            mydatp.EONIA(Xb(1):end),mydatp.Time_to_Maturity(Xb(1):end), ...
                            mdlprcG_p.TimeSer);                       
-clearvars C;                        
+   
 
+hlp = mdlprc_c(1:233,1:5); hlp.Properties.VariableNames = {'Date' 'ID' 'Price' 'TimeSer' 'Ext'}; % Anzahl Notierungen am ersten Beobachtungstag
+hlp2 = mdlprc_p(1:72,1:5); hlp2.Properties.VariableNames = {'Date' 'ID' 'Price' 'TimeSer' 'Ext'};
+mdlprcG_c = [hlp; mdlprcG_c]; mdlprcG_p = [hlp2; mdlprcG_p];
+clearvars C hlp;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                        Implied Volatility 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -149,7 +153,12 @@ Xb=find(strcmp(mydatp.Date,'2006-07-04'));
                            mydatp.EONIA(Xb(1):end), ...
                            mydatp.Time_to_Maturity(Xb(1):end), ...
                            mdlprcI_p.MeanImplVola(Xb(1):end));
-                       
+ 
+for i = 1:233
+    mdlprcI_c.MeanImplVola(i)=nan;
+    mdlprcI_p.MeanImplVola(i)=nan;
+end
+
 %% Impl Vola nach Maturity aufgeteilt:
 
     
