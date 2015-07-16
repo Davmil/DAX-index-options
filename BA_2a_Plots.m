@@ -1,9 +1,11 @@
 %% % ################# 2) Plots of the options data ########################
 
-% !!!!!!!!!!!!!!!!!!! Zuerst BA_3 durchlaufen lassen !!!!!!!!!!!!!!!!!!!!
-%%% Eonia:
+cd C:\Users\David\Documents\Bachelorarbeit\main;
+% cd C:\Users\Pomian\Documents\Bachelorarbeit\main;
+run('BA_0c_Vol_Est.m')
 
-plot(cohortParams.DateFormat,cohortParams.EONIA,'r');
+%% Eonia:
+% plot(cohortParams.DateFormat,cohortParams.EONIA,'r');
 
 %% % Dax Zeitreihe in Jahren
 
