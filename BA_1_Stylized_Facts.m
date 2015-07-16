@@ -4,7 +4,6 @@ cd C:\Users\David\Documents\Bachelorarbeit\main;
 % cd C:\Users\Pomian\Documents\Bachelorarbeit\main;
 run('BA_0b_Filtering.m');
 
-
 % ############################ 1) DAX ###################################
 %% Vola descriptives:
 descript_vola = zeros(6,7);
@@ -24,7 +23,12 @@ descript_vola(5,i) = min(vol(n(i)+1:end,i));
 descript_vola(6,i) = max(vol(n(i)+1:end,i));
 end
 clearvars i n vol;
-
+%% autocorrelation and partial-autocorrelation
+autocorr(daxlogreturns)
+parcorr(daxlogreturns)
+%%
+[H, pValue, Stat, CriticalValue] = lbqtest(daxlogreturns-mean(daxlogreturns), [10 15 20]', 0.05);
+[H, pValue, Stat, CriticalValue]
 %%  
 % ############################ 2) Options ################################
 
@@ -196,8 +200,14 @@ for i = 1:length(puts.ID)
     
     prc_beg_p(i) = opt.Price(1);  
 end
+%% Volume
+% Notierungen ohne Umsaetze 
+[length(mydatc(mydatc.Volume==0,3).Volume), ...
+length(mydatp(mydatp.Volume==0,3).Volume)]
+% Notierungen mit Umsaetzen
+[length(mydatc(mydatc.Volume>0,3).Volume), ...
+ length(mydatp(mydatp.Volume>0,3).Volume)]
 
- 
 %% % The Greeks
 % % Example
 % % any call option:
@@ -275,4 +285,7 @@ end
 % end 
 % 
 % toc
+
+
+
 
