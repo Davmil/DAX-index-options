@@ -394,19 +394,99 @@ any(prc_beg_p(:,1)==ausreisserp(i),2);
 end
 
 %% % DAX VOLATILITIES
+% Historical
 figure('position',[100 100 1200 600])
 volap = plot(daxVals.DateFormat,daxVals.vol20, ...
-            daxVals.DateFormat,daxVals.vol60, ...
-            daxVals.DateFormat,daxVals.vol120, ...
-            daxVals.DateFormat,daxVals.vol255);
+            daxVals.DateFormat,daxVals.vol40, ...
+            daxVals.DateFormat,daxVals.vol80, ...
+            daxVals.DateFormat,daxVals.vol120);
 datetick('x');
 
-title('Historical Volatility ')
-xlabel('days')
-ylabel('volatility (in %)')
-legend('Vola20','Vola60','Vola120','Vola255', 'Location','northeast')
+title('Historische Volatilität ')
+xlabel('Handelstage')
+ylabel('Volatilität (in %)')
+legend('Vola20','Vola40','Vola80','Vola120', 'Location','northeast')
 savefig('figures/hist_vola.fig');
 
+%% Garch(1,1)
+figure('position',[100 100 1200 600])
+volap2 = plot(daxVals.DateFormat,garch.TimeSer);
+datetick('x');
 
+title('GARCH(1,1) Volatilität ')
+xlabel('Handelstage')
+ylabel('Volatilität (in %)')
+legend('GARCH(1,1)', 'Location','northeast')
+savefig('figures/garch_vola.fig');
 
+%% Historical + GARCH(1,1)
+garch = [garch_vol(1,:); garch_vol]; garch(1,2) = table(nan);
+figure('position',[100 100 1200 600])
+volap3 = plot(daxVals.DateFormat,daxVals.vol20, ...
+            daxVals.DateFormat,daxVals.vol40, ...
+            daxVals.DateFormat,daxVals.vol80, ...
+            daxVals.DateFormat,daxVals.vol120, ...
+            daxVals.DateFormat,garch.TimeSer);
+datetick('x');
 
+title('Historische und GARCH(1,1) Volatilität ')
+xlabel('Handelstage')
+ylabel('Volatilität (in %)')
+legend('Vola20','Vola40','Vola80','Vola120','GARCH(1,1)', 'Location','northeast')
+savefig('figures/hist_garch_mix_vola.fig');
+
+%% Garch(1,1) Vola mit impliziten "at-the-money" Vola im Vergleich
+% 1)
+% Search for options with ATM mnyness
+% Datc = mydatc(:,1:13); Datc.Date = datenum(Datc.Date);
+% save Datc Datc;
+load Datc;
+myi = Datc(Datc.mnyness>=0.999 & Datc.mnyness<=1.001,:);
+% Plot
+figure('position',[100 100 1200 600])
+volap2 = plot(myi.Date,myi.ImplVola,...
+daxVals.DateFormat,garch.TimeSer);
+datetick('x');
+
+title('GARCH(1,1) und ATM Implizite Volatilitäten ')
+xlabel('Handelstage')
+ylabel('Volatilität (in %)')
+legend('Implizite Volatilität', 'GARCH(1,1)', 'Location','northeast')
+savefig('figures/garch_ATM_Impl_vola.fig');
+
+%% 2)
+% Waehle mit Strike: 7500 7700 7900
+myi = Datc(Datc.Strike==7500 | Datc.Strike==7700 | Datc.Strike==7900,:);
+myi2 = myi(strcmp(myi.ID,'c_20071221_7500'),:);
+myi3 = myi(strcmp(myi.ID,'c_20071221_7700'),:);
+myi4 = myi(strcmp(myi.ID,'c_20071221_7900'),:);
+
+volap = plot(daxVals.DateFormat,garch.TimeSer,...
+              myi2.Date,myi2.ImplVola,...
+              myi3.Date,myi3.ImplVola,...
+              myi4.Date,myi4.ImplVola...
+              );
+datetick('x');
+title('GARCH(1,1) und Implizite Volatilitäten ')
+xlabel('Handelstage')
+ylabel('Volatilität (in %)')
+legend('c20071221 7500','c20071221 7700','c20071221 7900', 'GARCH(1,1)', 'Location','northeast')
+savefig('figures/garch_3_Impl_vola1.fig');
+
+%% 3) 
+
+myi5 = myi(strcmp(myi.ID,'c_20081219_6500'),:);
+myi6 = myi(strcmp(myi.ID,'c_20081219_6700'),:);
+myi7 = myi(strcmp(myi.ID,'c_20081219_6900'),:);
+
+plot(daxVals.DateFormat,garch.TimeSer,...
+              myi5.Date,myi5.ImplVola,...
+              myi6.Date,myi6.ImplVola,...
+              myi7.Date,myi7.ImplVola...
+              );         
+datetick('x');
+title('GARCH(1,1) und Implizite Volatilitäten ')
+xlabel('Handelstage')
+ylabel('Volatilität (in %)')
+legend('c20071221 7500','c20071221 7700','c20071221 7900', 'GARCH(1,1)', 'Location','northeast')
+savefig('figures/garch_3_Impl_vola2.fig');
