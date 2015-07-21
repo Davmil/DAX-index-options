@@ -37,6 +37,8 @@ end
 
 % PLOT THE VOLATILITY srfce
 surf(srfce.T,srfce.K,srfce.IV)
+hold on 
+scatter3(T, K, IV,'filled')
 axis tight; grid on;
 title('Implied Volatility Surface','Fontsize',24,'FontWeight','Bold','interpreter','latex');
 xlabel('Time to Maturity','Fontsize',20,'FontWeight','Bold','interpreter','latex');
