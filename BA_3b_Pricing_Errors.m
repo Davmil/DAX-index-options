@@ -7,10 +7,26 @@ cd C:\Users\David\Documents\Bachelorarbeit\main;
 run('BA_3_Model_Prices.m')
 
 % load mdlprc_c; load mdlprc_p;
+%% ?? Zu grosse Abweichungen bei Putpreisen. Modellpreise sind oft sehr klein und ihre Marktpreise um ein vielfaches groesser.
+% % Wieso?
+% % Bsp: 
+test = mydatp(strcmp(mydatp.ID,'p_20070316_5200')&strcmp(mydatp.Date,'2006-11-24'),:);
+
+[A,B] = blsprice(test.DAX,test.Strike, ...
+                           test.EONIA,test.Time_to_Maturity, ...
+                           0.108760117960975); 
+% % Enferne alle Optionen mit einem Garch-Modellpreis von <5Euro 
+% mdlprc_p = mdlprc_p(mdlprcG_p.TimeSer>=5,:);
+% mydatp= [mydatp table(mdlprcG_p.TimeSer)];
+% mydatp= mydatp(mydatp.Var1>=5,:); %% Entferne von mydatp
+% mdlprcG_p = mdlprcG_p(mdlprcG_p.TimeSer>=5,:);
 
 %% Preperation
 % Years
-X=datenum(mydatc.Date);Y=datenum(mydatp.Date);
+X=datenum(mydatc.Date);
+Y=datenum(mydatp.Date);
+% save dateNumX X; save dateNumY Y;
+%load dateNumX; load dateNumY;
 XYstart=[datenum('2006-07-04');datenum('2007-01-02');datenum('2008-01-02');...
          datenum('2009-01-02');datenum('2010-01-04');datenum('2011-01-03');...
          datenum('2012-01-02');datenum('2013-01-02')];
@@ -59,7 +75,7 @@ for i = 1:length(XYstartMn)            %(moneyness)
             mnymat_errc(i,j+volest(k)) = nanmean(rpe_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
                                  mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j),k));
             mnymat_errp(i,j+volest(k)) = nanmean(rpe_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
-                                 mydatp.mnyness>=XYstartMn(j) & mydatp.mnyness<XYendMn(j),k));
+                                 mydatp.Time_to_Maturity>=XYstartM(j) & mydatp.Time_to_Maturity<XYendM(j),k));
         end     
     end 
 end
@@ -102,7 +118,7 @@ for i = 1:length(XYstartMn)            %(moneyness)
             mnymat_errc(i+6,j+volest(k)) = nanmean(arpe_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
                                  mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j),k));
             mnymat_errp(i+6,j+volest(k)) = nanmean(arpe_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
-                                 mydatp.mnyness>=XYstartMn(j) & mydatp.mnyness<XYendMn(j),k));
+                                 mydatp.Time_to_Maturity>=XYstartM(j) & mydatp.Time_to_Maturity<XYendM(j),k));
         end     
     end 
 end
@@ -194,7 +210,7 @@ for i = 1:length(XYstartMn)            %(moneyness)
             mnymat_errc(i,j+volest(k)) = nanmean(rpeG_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
                                  mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j),k));
             mnymat_errp(i,j+volest(k)) = nanmean(rpeG_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
-                                 mydatp.mnyness>=XYstartMn(j) & mydatp.mnyness<XYendMn(j),k));
+                                 mydatp.Time_to_Maturity>=XYstartM(j) & mydatp.Time_to_Maturity<XYendM(j),k));
         end     
     end 
 end
@@ -233,7 +249,7 @@ for i = 1:length(XYstartMn)            %(moneyness)
             mnymat_errc(i+6,j+volest(k)) = nanmean(arpeG_c(mydatc.mnyness>=XYstartMn(i) & mydatc.mnyness<XYendMn(i) & ...
                                  mydatc.Time_to_Maturity>=XYstartM(j) & mydatc.Time_to_Maturity<XYendM(j),k));
             mnymat_errp(i+6,j+volest(k)) = nanmean(arpeG_p(mydatp.mnyness>=XYstartMn(i) & mydatp.mnyness<XYendMn(i) & ...
-                                 mydatp.mnyness>=XYstartMn(j) & mydatp.mnyness<XYendMn(j),k));
+                                 mydatp.Time_to_Maturity>=XYstartM(j) & mydatp.Time_to_Maturity<XYendM(j),k));
         end     
     end 
 end
