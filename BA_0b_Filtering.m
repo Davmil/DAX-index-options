@@ -11,7 +11,8 @@ run('BA_0_StartUp.m')
 
 %%
 % tic
-% mydatc = callopt; mydatp = putopt;
+% mydatc = callopt; 
+%mydatp = putopt;
 % % Optionen im Datensatz mit einer Laufzeit von weniger als zwei Wochen bzw.
 % % 10 Handelstagen und mit einer Laufzeit von mehr als 2 Jahren
 % 
@@ -32,7 +33,7 @@ run('BA_0_StartUp.m')
 %     end 
 % end
 % 
-% % Puts:
+% Puts:
 % B = unique(mydatp.ID);
 % j=1;
 % k=1;
@@ -72,13 +73,57 @@ run('BA_0_StartUp.m')
 % % Nun haben wir Optionsscheine im Datensatz, die eine Laufzeit von
 % % mindestens 4 Wochen bzw. 20 Handelstagen und maximal 2 Jahre aufweisen!!!
 % 
-% save mydatc mydatc; save mydatp mydatp;
-% toc % Elapsed time is 763.268557 seconds.
+% save mydatc mydatc; 
+%save mydatp mydatp;
+% toc % Elapsed time is 786.419390 seconds.
 %%
 
 load mydatc; load mydatp;
 
 %%
+% Bestehen bei irgendwelchen Optionen im ungefiltertem Datensatz Arbitragemoeglichkeiten (nach Hull
+% Seite 218 f.)  
+
+arb_c = mydatc.DAX - mydatc.Price;
+arb_p = mydatp.Strike.*exp(-mydatp.EONIA.*mydatp.Time_to_Maturity) - mydatp.Price;
+
+any(arb_c<0)
+any(arb_p<0)
+% => upper bound wird eingehalten
+
+% Berechne St -Ke^(-rT) bzw. Ke^(-rT) - St
+arb2_c = mydatc.DAX - (mydatc.Strike.*exp(-mydatc.EONIA.*mydatc.Time_to_Maturity));
+arb2_p = (mydatp.Strike.*exp(-mydatp.EONIA.*mydatp.Time_to_Maturity)) - mydatp.DAX;
+%da ein Put/Call schlimmstenfalls wertlos verfaellt, kann sein Wert niemals
+%unter 0 sein (Hull, S285) ALSO:
+for i = 1:length(arb2_p)
+    if(arb2_p(i) <0)
+        arb2_p(i)=nan;
+    else
+        continue
+    end
+end
+for i = 1:length(arb2_c)
+    if(arb2_c(i) <0)
+        arb2_c(i)=nan;
+    else
+        continue
+    end
+end
+
+
+% Berechne Differenz zwischen lower bound und Price
+arb2_c(:,2) = mydatc.Price - arb2_c; arb2_p(:,2) = mydatp.Price - arb2_p;
+
+% Entferne Kurse mit WUG-Verletzung
+sum(any(arb2_c(:,2)<0,2))
+x=any(arb2_c(:,2)<0,2); mydatc(x,:) = [];
+sum(any(arb2_p(:,2)<0,2))
+x=any(any(arb2_p(:,2)<0,2),2); mydatp(x,:) = [];
+
+% => lower bound wird NICHT eingehalten bei 52451 Call-Kursen und bei 19085 Put-Kursen!
+
+
 % Moneyness zwischen 0.8 und 1.2
 mydatc = mydatc( (mydatc.mnyness<1.2 & mydatc.mnyness>0.8),:);
 mydatp = mydatp( (mydatp.mnyness<1.2 & mydatp.mnyness>0.8),:);
@@ -96,42 +141,11 @@ mydatc = mydatc(mydatc.TimeVal>=0,:);
 mydatp = mydatp(mydatp.TimeVal>=0,:);
 
 
-% Bestehen bei irgendwelchen Optionen im ungefiltertem Datensatz Arbitragemoeglichkeiten (nach Hull
-% Seite 218 f.)  
-
-arb_c = mydatc.DAX - mydatc.Price;
-arb_p = mydatp.Strike.*exp(-mydatp.EONIA.*mydatp.Time_to_Maturity) - mydatp.Price;
-
-any(arb_c<0)
-any(arb_p<0)
-% => upper bound wird eingehalten
-
-% Berechne St -Ke^(-rT) bzw. Ke^(-rT) - St
-arb2_c = mydatc.DAX - exp(-mydatc.EONIA.*mydatc.Time_to_Maturity).*mydatc.Strike;
-arb2_p = mydatp.DAX - exp(-mydatp.EONIA.*mydatp.Time_to_Maturity).*mydatp.Strike;
-
-% Berechne Differenz zwischen lower bound und Price
-arb2_c(:,2) = mydatc.Price - arb2_c; arb2_p(:,2) = mydatp.Price - arb2_p;
-
-arb2_c = table(mydatc.Date, mydatc.ID, arb2_c(:,1), arb2_c(:,2));
-arb2_p = table(mydatp.Date, mydatp.ID, arb2_p(:,1), arb2_p(:,2));
-
-mydatc = [mydatc table(arb2_c.Var3, arb2_c.Var4)];
-mydatp = [mydatp table(arb2_p.Var3, arb2_p.Var4)];
-
-% Entferne Kurse mit WUG-Verletzung
-sum(any(mydatc.Var1>0 & mydatc.Var2<0,2))
-x=any(mydatc.Var1>0 & mydatc.Var2<0,2); mydatc(x,:) = [];
-sum(any(mydatp.Var1>0 & mydatp.Var2<0,2))
-x=any(mydatp.Var1>0 & mydatp.Var2<0,2); mydatp(x,:) = [];
-
-% => lower bound wird NICHT eingehalten bei 3623 Call-Kursen und  bei Put-Kursen!
-
-% ID calls/puts after filtering
-mycalls = unique(mydatc.ID);
-myputs = unique(mydatp.ID);
-
-%%
 % Implied Vola below 5% and over 50%:
 mydatc = mydatc(mydatc.ImplVola <0.5 & mydatc.ImplVola >0.05,:);
 mydatp = mydatp(mydatp.ImplVola <0.5 & mydatp.ImplVola >0.05,:);
+
+% % ID calls/puts after filtering ==> FALSCH, da ID's nicht mit Strikes
+% % uebereinstimmen!
+% mycalls = unique(mydatc.ID);
+% myputs = unique(mydatp.ID);
