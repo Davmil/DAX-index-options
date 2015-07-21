@@ -9,7 +9,7 @@ run('BA_3b_Pricing_Errors.m')
 % BSP = Modellpreis
 % MY = Moneyness
 % T = Time to Maturity/Restlaufzeit
-% U = Volume/Umsatz
+% U = Volume/Handelsvolumen
 % ARPE = Wie in "BA_3b..."
 
 % Preparing
