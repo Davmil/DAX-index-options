@@ -33,23 +33,10 @@ format short g
 % %% Insert ID variable into datorig table
 % load callPrices
 % load putPrices
-% % Calls
-% callopt = sortrows(callopt,'Expiry','ascend');
-% callopt = sortrows(callopt,'Strike','ascend');
-% callopt = sortrows(callopt,'Date','ascend');
-% callPrices = sortrows(callPrices,'Strike','ascend');
-% callPrices = sortrows(callPrices,'Date','ascend');
-% callopt = [callopt callPrices.ID];
-% callopt.Properties.VariableNames{11} = 'ID';
-% 
-% %% Puts
-% putopt = sortrows(putopt,'Expiry','ascend');
-% putopt = sortrows(putopt,'Strike','ascend');
-% putopt = sortrows(putopt,'Date','ascend');
-% putPrices = sortrows(putPrices,'Strike','ascend');
-% putPrices = sortrows(putPrices,'Date','ascend');
-% putopt = [putopt putPrices.ID];
-% putopt.Properties.VariableNames{11} = 'ID';
+
+
+% callopt = join(callopt,callPrices(:,[1 4 5 2]), 'Keys', {'Date', 'Strike', 'Time_to_Maturity'});
+% putopt = join(putopt,putPrices(:,[1 4 5 2]), 'Keys', {'Date', 'Strike', 'Time_to_Maturity'});
 
 %% % 1b) Import datasets by mouse click:
 %        opts, optprices, daxvals, cohortpars, addobs (addobs0913 and
@@ -129,6 +116,9 @@ putopt = [putopt table(putopt.Strike./putopt.DAX)];
 putopt.Properties.VariableNames{13} = 'mnyness';
 
 %% Time Value (Zeitwert = Optionspreis - Innerer Wert)
+% % Suche die Optionen im Geld heraus:
+% TimeTestc = callopt(callopt.mnyness<1,:);
+% TimeTestp = putopt(putopt.mnyness>1,:);
 
 % Innerer Wert
                     % Ganzer Datensatz
@@ -143,5 +133,29 @@ callopt = [callopt table( callopt.Price - callopt.IntrVal ) ];
 putopt = [putopt table( putopt.Price - putopt.IntrVal ) ];
 callopt.Properties.VariableNames{15} = 'TimeVal';  
 putopt.Properties.VariableNames{15} = 'TimeVal';
+
+% % Innerer Wert
+%                     % In the money
+% TimeTestc = [TimeTestc table( TimeTestc.DAX - TimeTestc.Strike ) ];
+% TimeTestp = [TimeTestp table( TimeTestp.Strike - TimeTestp.DAX ) ];
+% TimeTestc.Properties.VariableNames{14} = 'IntrVal';  
+% TimeTestp.Properties.VariableNames{14} = 'IntrVal';
+%                    
+% % Time Value
+%                     % In the money
+% TimeTestc = [TimeTestc table( TimeTestc.Price - TimeTestc.IntrVal ) ];
+% TimeTestp = [TimeTestp table( TimeTestp.Price - TimeTestp.IntrVal ) ];
+% TimeTestc.Properties.VariableNames{15} = 'TimeVal';  
+% TimeTestp.Properties.VariableNames{15} = 'TimeVal';
+% 
+% % Anzahl mit negativem Zeitwert
+% size(TimeTestc(TimeTestc.TimeVal<0,10)) % Calls ( 30.109 price quotaions)
+% size(TimeTestp(TimeTestp.TimeVal<0,10)) % Calls (147.053 price quotaions)
+
+size(callopt(callopt.TimeVal<0,10)) % Calls ( 29528 price quotaions)
+size(putopt(putopt.TimeVal<0,10)) % Calls (147100 price quotaions)
+
+
+
 
 
