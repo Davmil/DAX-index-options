@@ -32,38 +32,29 @@ parcorr(daxlogreturns)
 %%  
 % ############################ 2) Options ################################
 
-Number of calls/puts with certain Strike
-Calls
-calls = sortrows(calls,'Strike','ascend');
-j=2;
-num_c(1,1) = calls.Strike(1);
-
-for i = 1:length(calls.Strike)
-    if(num_c(j-1,1) ~= calls.Strike(i) )
-        num_c(j,1) = calls.Strike(i);
-        j = j + 1;
-    else 
-        continue
-    end    
-end  
-
-num_c(:,2) = histc( calls.Strike, unique(calls.Strike) );
-
-% Puts
-puts = sortrows(puts,'Strike','ascend');
-j=2;
-num_p(1,1) = puts.Strike(1);
-
-for i = 1:length(puts.Strike)
-    if(num_p(j-1,1) ~= puts.Strike(i) )
-        num_p(j,1) = puts.Strike(i);
-        j = j + 1;
-    else 
-        continue
-    end    
-end 
-
-num_p(:,2) = histc( puts.Strike, unique(puts.Strike) );
+% Number of calls/puts with certain Strike
+% Calls
+% strikec=nan(length(mycalls),1);
+% for i= 1:length(mycalls)
+%     strikec(i,1) = str2double(mycalls{i,1}(12:end));
+% end
+% 
+% num_c = unique(strikec);
+% for i = 1:length(num_c)
+%     num_c(i,2) = length(strikec(strikec==num_c(i),:));
+% end
+% 
+% 
+% % Puts
+% strikep=nan(length(myputs),1);
+% for i= 1:length(myputs)
+%     strikep(i,1) = str2double(myputs{i,1}(12:end));
+% end
+% 
+% num_p = unique(strikep);
+% for i = 1:length(num_p)
+%     num_p(i,2) = length(strikep(strikep==num_p(i),:));
+% end
 
 
 %% % Max/Min of Time to Maturity 
@@ -151,11 +142,13 @@ find( mat(:,3) == max(mat(:,3)) ) % Puts
 % load mat
 
 %% % Restlaufzeiten am Anfang der Option
-
+mycalls = table(mycalls); mycalls.Properties.VariableNames{1}='ID';
+myputs = table(myputs); myputs.Properties.VariableNames{1}='ID';
+%%
 % Calls 
-mat_beg_c = zeros( length(calls.ID),1 );
-for i = 1:length(calls.ID)
-    opt = callPrices(strcmp(callPrices.ID,calls.ID(i)),5);
+mat_beg_c = zeros( length(mycalls.ID),1 );
+for i = 1:length(mycalls.ID)
+    opt = mydatc(strcmp(mydatc.ID,mycalls.ID(i)),9);
     
     x = max(opt.Time_to_Maturity);
     mat_beg_c(i,1) = x;
@@ -163,9 +156,9 @@ for i = 1:length(calls.ID)
 end
 
 % Puts 
-mat_beg_p = zeros( length(puts.ID),1 );
-for i = 1:length(puts.ID)
-    opt = putPrices(strcmp(putPrices.ID,puts.ID(i)),5);
+mat_beg_p = zeros( length(myputs.ID),1 );
+for i = 1:length(myputs.ID)
+    opt = mydatp(strcmp(mydatp.ID,myputs.ID(i)),9);
     
     x = max(opt.Time_to_Maturity);
     mat_beg_p(i,1) = x;
@@ -183,6 +176,22 @@ mat_beg_p(:,2) = round(mat_beg_p(:,1)*255);
 
 % call and puts together
 mat_beg(:,1) = [mat_beg_c(:,1); mat_beg_p(:,1)];
+
+% oder
+%% 
+cstr=unique(mydatc.Strike); cexp=unique(mydatc.Expiry);
+pstr=unique(mydatp.Strike); pexp=unique(mydatp.Expiry);
+
+mat_beg_c = zeros( length(E2),1 );
+for i=1:length(cstr)
+    for j=1:length(cexp)
+        opt = mydatc(mydatc.Strike==cstr(i) & strcmp(mydatc.Expiry,cexp(j)),9);
+        if ~isempty(opt.Time_to_Maturity)
+         mat_beg_c(i,1) = max(opt.Time_to_Maturity);
+        end       
+    end
+end
+
 
 %%  Preise der Optionen an ihrem ersten Handelstag
 % Calls 
