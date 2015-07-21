@@ -21,6 +21,7 @@ savefig('figures/dax_schlusskurse_1.fig');
 %% % Dax Zeitreihe in Tagen
 figure('position',[100 100 1200 600])
 plot(daxVals.DAX)
+
 line([129 129],[3000 10000],'LineStyle',':',...     % 2007
     'color','k');
 line([381 381],[3000 10000],'LineStyle',':',...     % 2008
@@ -147,67 +148,99 @@ ylabel('Rendite')
 
 savefig('figures/dax_rendite_2.fig');
 
-%% % Plotting any options
-
-% for i=1:length(optPrices.ID)
+% %% % Extract options for plotting
+% B = optPrices(strcmp(optPrices.ID,'c_20061215_1800'),:);
 % 
-% optPrices.ID(i) = optPrices(find(strncmp(optPrices.ID,optPrices.ID(i),length(optPrices.ID(i)))),{'Date','Price'});
+% plot(datenum(B.Date),B.Price)
+% datetick('x')
 % 
-% end
-
-c_20061215_1800 = optPrices(find(strncmp(optPrices.ID,'c_20061215_1800',length('c_20061215_1800'))),{'Date','Price'});
-c_20061215_2000 = optPrices(find(strncmp(optPrices.ID,'c_20061215_2000',length('c_20061215_2000'))),{'Date','Price'});
-c_20061215_2200 = optPrices(find(strncmp(optPrices.ID,'c_20061215_2200',length('c_20061215_2200'))),{'Date','Price'});
-c_20061215_2400 = optPrices(find(strncmp(optPrices.ID,'c_20061215_2400',length('c_20061215_2400'))),{'Date','Price'});
-c_20061215_2800 = optPrices(find(strncmp(optPrices.ID,'c_20061215_2800',length('c_20061215_2800'))),{'Date','Price'});
-
-plot(c_20061215_1800.Price)
-hold on
-plot(c_20061215_2000.Price,'r')
-hold on
-plot(c_20061215_2200.Price,'y')
-hold on
-plot(c_20061215_2400.Price,'m')
-hold on
-plot(c_20061215_2800.Price,'c')
-
-%% % Extract options for plotting
-B = optPrices(strcmp(optPrices.ID,'c_20061215_1800'),:);
-
-plot(datenum(B.Date),B.Price)
-datetick('x')
-
-%%
-A = callPrices(55374:337777,:);
-B = A(strcmp(A.ID,'c_20081219_6500'),:);
-sum(B.workingdays2mat);
-
-plot(B.Price)
-hold on
-plot(daxVals.DAX)
-set(gca,'xLim',[1 501])
+% %%
+% A = callPrices(55374:337777,:);
+% B = A(strcmp(A.ID,'c_20081219_6500'),:);
+% sum(B.workingdays2mat);
+% 
+% plot(B.Price)
+% hold on
+% plot(daxVals.DAX)
+% set(gca,'xLim',[1 501])
 
 
 %% % barplot: put options with specific strike
 figure('position',[100 100 1200 600])
 bar(num_p(:,1),num_p(:,2))
-set(gca,'xLim',[500 21000])
-title('Put Optionen')
+set(gca,'xLim',[1000 1.2*10^4])
+title('Anzahl der Putoptionen')
 xlabel('Strike')
 ylabel('Anzahl')
 
 savefig('figures/put_options_bar.fig');
+%% oder
+A= mydatp(:,[5 6]);
+A = sortrows(A,'Strike','ascend');
+B = unique(A.Strike);
+
+j=1;
+for i= 1:length(B)
+   C = A(A.Strike==B(i),:); 
+   D = unique(C.Expiry);
+   E1(j:j+length(D)-1,1) = repmat(B(i),length(D),1);
+   j=j+length(D);
+end
+
+
+hist(E1,40)
+set(gca,'xLim',[3000 1.15*10^4])
+
+xlabel('Strike')
+ylabel('Anzahl')
+
+savefig('figures/put_options_hist.fig');
 %% barplot: call options with specific strike
 figure('position',[100 100 1200 600])
 bar(num_c(:,1),num_c(:,2))
-set(gca,'xLim',[500 21000])
+set(gca,'xLim',[2500 1.3*10^4])
 title('Call Optionen')
 xlabel('Strike')
 ylabel('Anzahl')
 
 savefig('figures/call_options_bar.fig');
-% too confusing... -> group them: 
+%% oder
+A= mydatc(:,[5 6]);
+A = sortrows(A,'Strike','ascend');
+B = unique(A.Strike);
 
+j=1;
+for i= 1:length(B)
+   C = A(A.Strike==B(i),:); 
+   D = unique(C.Expiry);
+   E2(j:j+length(D)-1,1) = repmat(B(i),length(D),1);
+   j=j+length(D);
+end
+
+
+hist(E2,40)
+set(gca,'xLim',[3000 1.15*10^4])
+xlabel('Strike')
+ylabel('Anzahl')
+
+savefig('figures/call_options_hist.fig');
+
+%% hist: Moneyness
+% Call
+hist(mydatc.mnyness,20);
+set(gca,'xLim',[0.76 1.24])
+xlabel('Moneyness')
+ylabel('Anzahl Calls')
+
+savefig('figures/call_mnyness_hist.fig');
+%%
+% Put
+hist(mydatp.mnyness,20);
+set(gca,'xLim',[0.76 1.24])
+xlabel('Moneyness')
+ylabel('Anzahl Puts')
+
+savefig('figures/put_mnyness_hist.fig');
 %% barplot: Moneyness
 % Aufteilung in <80%, 80-95%, 95-105%, 105-120% und >120% 
 %(DOTM, OTM, ATM, ITM, DITM)
@@ -366,6 +399,15 @@ text(1.125,270000,'OTM','HorizontalAlignment','center','fontsize',9)
 text(0.6,280000,'DOTM / DITM','HorizontalAlignment','center','fontsize',9)
 text(1.4,280000,'DITM / DOTM','HorizontalAlignment','center','fontsize',9)
 
+%% Restlaufzeiten (gefilterter Datensatz)
+hist(mydatc(mydatc.Time_to_Maturity<2,:).Time_to_Maturity,20)
+xlabel('Laufzeit in Jahren')
+ylabel('Anzahl Calls')
+%%
+hist(mydatp(mydatp.Time_to_Maturity<2,:).Time_to_Maturity,20)
+xlabel('Laufzeit in Jahren')
+ylabel('Anzahl Puts')
+
 %% Restlaufzeiten am Anfang der Option (Calls/Puts/alle Optionen)
 
 hist(mat_beg_c(:,1), 60)
@@ -383,6 +425,17 @@ title('(Rest-)Laufzeiten aller Optionen an ihrem ersten Handelstag')
 xlabel('Laufzeit in Jahren')
 ylabel('Anzahl')
 
+%% Preise (gefilterter Datensatz, allgemein)
+hist(mydatc.Price,23)
+set(gca,'xLim',[5 2300])
+xlabel('Preis')
+ylabel('Anzahl Calls')
+%%
+hist(mydatp.Price,23)
+set(gca,'xLim',[5 2300])
+xlabel('Preis')
+ylabel('Anzahl Puts')
+
 %% Preise der Optionen an ihrem ersten Handelstag
 hist(prc_beg_p(:,1), 40)
 hist(prc_beg_c(:,1), 40)
@@ -394,6 +447,19 @@ ausreisserc = prc_beg_c(prc_beg_c(:,1)>=6000);
 for i = 1:length(ausreisserp)
 any(prc_beg_p(:,1)==ausreisserp(i),2);
 end
+
+% %% Anzahl Optionen pro Handelstag
+% 
+% plot(daxVals.Date,
+
+
+%% Im/Aus dem Geld im Zeitverlauf
+zeitvC = mydatc.DAX - mydatc.Strike; % Calls
+plot(-mydatc.Time_to_Maturity,zeitvC);
+
+%%
+zeitvp = mydatp.Strike - mydatp.DAX; % Puts
+plot(-mydatp.Time_to_Maturity,zeitvp);
 
 %% % DAX VOLATILITIES
 % Historical
