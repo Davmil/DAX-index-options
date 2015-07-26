@@ -1,9 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%           Modellpreise                %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-cd C:\Users\David\Documents\Bachelorarbeit\main;
-% cd C:\Users\Pomian\Documents\Bachelorarbeit\main;
-run('BA_0c_Vol_Est.m')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                        Historical Volatility 
@@ -112,8 +109,8 @@ mdlprcG_c.TimeSer = bs_price(mydatc.DAX(Xa(1):end),mydatc.Strike(Xa(1):end), ...
                            mdlprcG_p.TimeSer);                       
    
 
-hlp = mdlprc_c(1:233,1:5); hlp.Properties.VariableNames = {'Date' 'ID' 'Price' 'TimeSer' 'Ext'}; % Anzahl Notierungen am ersten Beobachtungstag
-hlp2 = mdlprc_p(1:72,1:5); hlp2.Properties.VariableNames = {'Date' 'ID' 'Price' 'TimeSer' 'Ext'};
+hlp = mdlprc_c(1:Xa(1)-1,1:5); hlp.Properties.VariableNames = {'Date' 'ID' 'Price' 'TimeSer' 'Ext'}; % Anzahl Notierungen am ersten Beobachtungstag
+hlp2 = mdlprc_p(1:Xb(1)-1,1:5); hlp2.Properties.VariableNames = {'Date' 'ID' 'Price' 'TimeSer' 'Ext'};
 mdlprcG_c = [hlp; mdlprcG_c]; mdlprcG_p = [hlp2; mdlprcG_p];
 clearvars C hlp;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
