@@ -1,9 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%       Volatilitaetsschaetzer          %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-cd C:\Users\David\Documents\Bachelorarbeit\main;
-% cd C:\Users\Pomian\Documents\Bachelorarbeit\main;
-run('BA_0b_Filtering.m')
+
 
 %% % Standard historical volatility estimate (Figlewski, p.18)
 % Log returns:
