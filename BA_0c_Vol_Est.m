@@ -89,7 +89,7 @@ daxVals=standardizeMissing(daxVals,{0},'DataVariables',{'vol20','vol40','vol60',
 % save garch_vol garch_vol;
 % toc % Elapsed time is 128.087547 seconds.
 load pars; load garch_vol;
-
+garch = [garch_vol(1,:); garch_vol]; garch(1,2) = table(nan); % Fuer spaetere Plots
 %% Implied Volatility - Newton-Raphson Method (see Haug, p.453)
 
 % % Call
