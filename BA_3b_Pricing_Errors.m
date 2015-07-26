@@ -2,10 +2,6 @@
 %%%%%%%%%        Bewertungsabweichungen         %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-cd C:\Users\David\Documents\Bachelorarbeit\main;
-% cd C:\Users\Pomian\Documents\Bachelorarbeit\main;
-run('BA_3_Model_Prices.m')
-
 % load mdlprc_c; load mdlprc_p;
 %% ?? Zu grosse Abweichungen bei Putpreisen. Modellpreise sind oft sehr klein und ihre Marktpreise um ein vielfaches groesser.
 % % Wieso?
@@ -22,11 +18,8 @@ test = mydatp(strcmp(mydatp.ID,'p_20070316_5200')&strcmp(mydatp.Date,'2006-11-24
 % mdlprcG_p = mdlprcG_p(mdlprcG_p.TimeSer>=5,:);
 
 %% Preperation
-% Years
-% X=datenum(mydatc.Date);
-% Y=datenum(mydatp.Date);
-% save dateNumX X; save dateNumY Y;
 load dateNumX; load dateNumY;
+
 XYstart=[datenum('2006-07-04');datenum('2007-01-02');datenum('2008-01-02');...
          datenum('2009-01-02');datenum('2010-01-04');datenum('2011-01-03');...
          datenum('2012-01-02');datenum('2013-01-02')];
@@ -432,3 +425,11 @@ end
 %     year_errp(i,12) = sqrt(nanmean(repmat(mdlprcI_p.Price( find(Y==XYstart(i-18)):find(Y==XYend(i-18),1,'last')), 1, 1) - ...
 %                      table2array(mdlprcI_p(find(Y==XYstart(i-18)):find(Y==XYend(i-18),1,'last'), 2))).^2);
 % end  
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                        Saving Pricing Errors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+save year_errc year_errc; save year_errp year_errp;
+save ttm_errc ttm_errc; save ttm_errp ttm_errp;
