@@ -1,8 +1,5 @@
 %% % ############ 1) Importing, manipulating of options data ###############
 
-cd C:\Users\David\Documents\Bachelorarbeit\main;
-% cd D:\Bachelorarbeit\main;
-format short g
 
 %% % 1a)  Import dataset datorig => callopt und pullopt
 
