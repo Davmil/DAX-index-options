@@ -5,9 +5,6 @@
 %        - Maturity max.  510 Handelstage bzw. 2 Jahre
 %        - Optionskurse mit negativem Zeitwert
 %        - Optionskurse mit Wertober- oder Wertuntergrenzenverletzung
-cd C:\Users\David\Documents\Bachelorarbeit\main;
-% cd C:\Users\Pomian\Documents\Bachelorarbeit\main;
-run('BA_0_StartUp.m')
 
 %%
 % tic
@@ -149,3 +146,15 @@ mydatp = mydatp(mydatp.ImplVola <0.5 & mydatp.ImplVola >0.05,:);
 % % uebereinstimmen!
 % mycalls = unique(mydatc.ID);
 % myputs = unique(mydatp.ID);
+
+% Years
+% X=datenum(mydatc.Date);
+% Y=datenum(mydatp.Date);
+% save dateNumX X; save dateNumY Y;
+load dateNumX; load dateNumY;
+
+% Create date in date format
+mydatc.DateFormat = datenum(mydatc.Date);
+mydatp.DateFormat = datenum(mydatp.Date);
+
+save mydatc mydatc; save mydatp mydatp;
