@@ -9,7 +9,7 @@
 %%
 % tic
 % mydatc = callopt; 
-%mydatp = putopt;
+% mydatp = putopt;
 % % Optionen im Datensatz mit einer Laufzeit von weniger als zwei Wochen bzw.
 % % 10 Handelstagen und mit einer Laufzeit von mehr als 2 Jahren
 % 
@@ -30,7 +30,7 @@
 %     end 
 % end
 % 
-% Puts:
+% % Puts:
 % B = unique(mydatp.ID);
 % j=1;
 % k=1;
@@ -70,12 +70,12 @@
 % % Nun haben wir Optionsscheine im Datensatz, die eine Laufzeit von
 % % mindestens 4 Wochen bzw. 20 Handelstagen und maximal 2 Jahre aufweisen!!!
 % 
-% save mydatc mydatc; 
-%save mydatp mydatp;
+% save mydatcBACKUP mydatc; 
+% save mydatpBACKUP mydatp;
 % toc % Elapsed time is 786.419390 seconds.
-%%
+% %%
 
-load mydatc; load mydatp;
+load mydatcBACKUP; load mydatpBACKUP;
 
 %%
 % Bestehen bei irgendwelchen Optionen im ungefiltertem Datensatz Arbitragemoeglichkeiten (nach Hull
@@ -139,8 +139,8 @@ mydatp = mydatp(mydatp.TimeVal>=0,:);
 
 
 % Implied Vola below 5% and over 50%:
-mydatc = mydatc(mydatc.ImplVola <0.5 & mydatc.ImplVola >0.05,:);
-mydatp = mydatp(mydatp.ImplVola <0.5 & mydatp.ImplVola >0.05,:);
+% mydatc = mydatc(mydatc.ImplVola <0.5 & mydatc.ImplVola >0.05,:);
+% mydatp = mydatp(mydatp.ImplVola <0.5 & mydatp.ImplVola >0.05,:);
 
 % % ID calls/puts after filtering ==> FALSCH, da ID's nicht mit Strikes
 % % uebereinstimmen!
@@ -157,4 +157,5 @@ load dateNumX; load dateNumY;
 mydatc.DateFormat = datenum(mydatc.Date);
 mydatp.DateFormat = datenum(mydatp.Date);
 
-save mydatc mydatc; save mydatp mydatp;
+save mydatc mydatc;
+save mydatp mydatp;
