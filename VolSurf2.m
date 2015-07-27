@@ -43,8 +43,8 @@ scatter3(T, K, IV,'filled');
 % [m,v,d] = axis('state')
 xmin = 0.0;
 xmax = 2.5;
-ymin = 4000;
-ymax = 9000;
+ymin = 3000;
+ymax = 11500;
 zmin = 0.0;
 zmax = 0.5;
 AxisLimits = [xmin xmax ymin ymax zmin zmax];
