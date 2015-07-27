@@ -1,4 +1,4 @@
-function srfce = VolSurf2(T, K, IV)
+function ActFrame = VolSurf2(T, K, IV, zeit)
 
 % CLEAN MISSING VALUES
 %   K        Strike
@@ -36,12 +36,37 @@ end
 
 
 % PLOT THE VOLATILITY srfce
-surf(srfce.T,srfce.K,srfce.IV)
+surftmp = surf(srfce.T,srfce.K,srfce.IV);
+
 hold on 
-scatter3(T, K, IV,'filled')
-axis tight; grid on;
-title('Implied Volatility Surface','Fontsize',24,'FontWeight','Bold','interpreter','latex');
+scatter3(T, K, IV,'filled');
+% [m,v,d] = axis('state')
+xmin = 0.0;
+xmax = 2.5;
+ymin = 4000;
+ymax = 9000;
+zmin = 0.0;
+zmax = 0.5;
+AxisLimits = [xmin xmax ymin ymax zmin zmax];
+axis(AxisLimits);
+% axis tight; 
+% axis(ax, 'tight'); 
+grid on;
+MyTitle = strcat( 'Implied Volatility Surface : ', zeit);
+title(MyTitle,'Fontsize',24,'FontWeight','Bold','interpreter','latex');
+% title('Implied Volatility Surface','Fontsize',24,'FontWeight','Bold','interpreter','latex');
 xlabel('Time to Maturity','Fontsize',20,'FontWeight','Bold','interpreter','latex');
+hx=get(gca,'xlabel');
+set(hx,'rotation',11)
+
 ylabel('Strike Level','Fontsize',20,'FontWeight','Bold','interpreter','latex');
+hy=get(gca,'ylabel');
+set(hy,'rotation',-20)
+
 zlabel('Implied Volatility $\sigma(T,M)$','Fontsize',20,'FontWeight','Bold','interpreter','latex');
 set(gca,'Fontsize',16,'FontWeight','Bold','LineWidth',2);
+ActFrame = getframe(gcf); % leaving gcf out crops the frame in the movie.
+hold off
+
+
+
