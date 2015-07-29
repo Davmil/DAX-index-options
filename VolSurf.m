@@ -53,6 +53,7 @@ axis(AxisLimits);
 
 % axis tight; 
 grid on;
+view([-62.5 40]);
 MyTitle = strcat( 'Implied Volatility Surface : ', zeit);
 
 title(MyTitle,'Fontsize',24,'FontWeight','Bold','interpreter','latex');
