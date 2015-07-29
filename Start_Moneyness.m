@@ -5,8 +5,8 @@ close all;
 load mydatc;
 
 DateLoop = unique(mydatc.Date);
-nFrames = length(DateLoop);
-% nFrames = 40;
+% nFrames = length(DateLoop);
+nFrames = 40;
 
 disp(nFrames)
 
@@ -31,7 +31,7 @@ end
 
 close all;
 
-save mymov2 M;
+save mymovCall2 M;
 
 % movie(M)
 % movie2avi(M,'FinMovie.avi', 'compression', 'None');
@@ -68,7 +68,7 @@ end
 
 close all;
 
-save mymovP2 M;
+save mymovPut2 M;
 
 % movie(M)
 % movie2avi(M,'FinMovieP.avi', 'compression', 'None');
