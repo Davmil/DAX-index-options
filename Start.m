@@ -1,5 +1,4 @@
 %% Calls
-clear;
 close all;
 
 load mydatc;
@@ -31,13 +30,12 @@ end
 
 close all;
 
-save mymov M;
+% save mymov M;
 
 % movie(M)
-% movie2avi(M,'FinMovie.avi', 'compression', 'None');
+movie2avi(M,'FinMovie.avi', 'compression', 'None');
 
 %% Puts
-clear;
 close all;
 load mydatp;
 
@@ -68,7 +66,7 @@ end
 
 close all;
 
-save mymovP M;
+% save mymovP M;
 
 % movie(M)
-% movie2avi(M,'FinMovieP.avi', 'compression', 'None');
+movie2avi(M,'FinMovieP.avi', 'compression', 'None');
